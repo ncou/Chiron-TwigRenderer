@@ -1,9 +1,8 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-
-use Chiron\Views\TwigRenderer;
 use Chiron\Views\TemplatePath;
+use Chiron\Views\TwigRenderer;
+use PHPUnit\Framework\TestCase;
 
 class TwigRendererTest extends TestCase
 {
@@ -12,7 +11,7 @@ class TwigRendererTest extends TestCase
      */
     private $twigEnvironment;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->twigEnvironment = new Twig_Environment(new Twig_Loader_Filesystem());
     }
@@ -22,17 +21,20 @@ class TwigRendererTest extends TestCase
         $message = $message ?: sprintf('Failed to assert TemplatePath contained path %s', $path);
         $this->assertEquals($path, $templatePath->getPath(), $message);
     }
+
     public function assertTemplatePathString($path, TemplatePath $templatePath, $message = null)
     {
         $message = $message ?: sprintf('Failed to assert TemplatePath casts to string path %s', $path);
         $this->assertEquals($path, (string) $templatePath, $message);
     }
+
     public function assertTemplatePathNamespace($namespace, TemplatePath $templatePath, $message = null)
     {
         $message = $message
             ?: sprintf('Failed to assert TemplatePath namespace matched %s', var_export($namespace, true));
         $this->assertEquals($namespace, $templatePath->getNamespace(), $message);
     }
+
     public function assertEmptyTemplatePathNamespace(TemplatePath $templatePath, $message = null)
     {
         $message = $message ?: 'Failed to assert TemplatePath namespace was empty';
@@ -45,6 +47,7 @@ class TwigRendererTest extends TestCase
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
         $this->assertEmpty($renderer->getPaths());
     }
+
     public function testInstantiatingWithoutEngineLazyLoadsOne()
     {
         $renderer = new TwigRenderer();
@@ -63,6 +66,7 @@ class TwigRendererTest extends TestCase
         $this->assertTemplatePathString(__DIR__ . '/TestAsset', $paths[0]);
         $this->assertEmptyTemplatePathNamespace($paths[0]);
     }
+
     public function testCanAddPathWithNamespace()
     {
         $renderer = new TwigRenderer();
@@ -74,11 +78,12 @@ class TwigRendererTest extends TestCase
         $this->assertTemplatePathString(__DIR__ . '/TestAsset', $paths[0]);
         $this->assertTemplatePathNamespace('test', $paths[0]);
     }
+
     public function testDelegatesRenderingToUnderlyingImplementation()
     {
         $renderer = new TwigRenderer();
         $renderer->addPath(__DIR__ . '/TestAsset');
-        $result = $renderer->render('testTemplate.html', [ 'hello' => 'Hi' ]);
+        $result = $renderer->render('testTemplate.html', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);
     }
 }
