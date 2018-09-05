@@ -28,7 +28,7 @@ class TwigRenderer implements TemplateRendererInterface
 
     public function __construct(TwigEnvironment $engine = null, string $suffix = 'html')
     {
-        $this->engine = $engine ?: $this->createEngine();
+        $this->engine = $engine ?: $this->createTwigEngine();
         $this->loader = $this->engine->getLoader();
         $this->suffix = is_string($suffix) ? $suffix : 'html';
     }
@@ -36,7 +36,7 @@ class TwigRenderer implements TemplateRendererInterface
     /**
      * Create a default Twig environment.
      */
-    private function createEngine(): TwigEnvironment
+    private function createTwigEngine(): TwigEnvironment
     {
         $loader = new TwigFilesystem();
 
