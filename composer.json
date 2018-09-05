@@ -20,7 +20,7 @@
   },
   "scripts": {
         "phpunit": "phpunit --colors=always",
-        "coverage": "phpunit --coverage-clover clover.xml",
+        "test-coverage": "phpunit --coverage-clover clover.xml",
         "phpstan": "phpstan analyse src --level=2"
     }
 }
