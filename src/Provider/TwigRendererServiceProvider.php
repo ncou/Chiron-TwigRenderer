@@ -2,8 +2,8 @@
 
 namespace Chiron\Views\Provider;
 
-use Chiron\Views\TwigRenderer;
 use Chiron\Views\TemplateRendererInterface;
+use Chiron\Views\TwigRenderer;
 use Psr\Container\ContainerInterface;
 
 class TwigRendererServiceProvider
