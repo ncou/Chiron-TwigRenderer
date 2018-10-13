@@ -14,7 +14,7 @@ class TwigRenderer implements TemplateRendererInterface
     /**
      * @var string
      */
-    private $suffix;
+    private $extension;
 
     /**
      * @var TwigFilesystem
@@ -26,11 +26,11 @@ class TwigRenderer implements TemplateRendererInterface
      */
     protected $engine;
 
-    public function __construct(TwigEnvironment $engine = null, string $suffix = 'html')
+    public function __construct(TwigEnvironment $engine = null, string $extension = 'html')
     {
         $this->engine = $engine ?: $this->createTwigEngine();
         $this->loader = $this->engine->getLoader();
-        $this->suffix = is_string($suffix) ? $suffix : 'html';
+        $this->extension = is_string($extension) ? $extension : 'html';
     }
 
     /**
@@ -110,7 +110,7 @@ class TwigRenderer implements TemplateRendererInterface
     {
         $template = preg_replace('#^([^:]+)::(.*)$#', '@$1/$2', $template);
         if (! preg_match('#\.[a-z]+$#i', $template)) {
-            return sprintf('%s.%s', $template, $this->suffix);
+            return sprintf('%s.%s', $template, $this->extension);
         }
 
         return $template;
