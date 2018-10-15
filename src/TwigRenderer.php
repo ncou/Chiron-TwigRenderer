@@ -4,43 +4,29 @@ declare(strict_types=1);
 
 namespace Chiron\Views;
 
-use Twig_Environment as TwigEnvironment;
-use Twig_Loader_Filesystem as TwigFilesystem;
-
 class TwigRenderer implements TemplateRendererInterface
 {
     use AttributesTrait;
+    use ExtensionTrait;
 
     /**
-     * @var string
+     * @var string twig namespace to use in templates
      */
-    private $extension;
+    public $twigViewsNamespace = \Twig_Loader_Filesystem::MAIN_NAMESPACE;
+    /**
+     * @var \Twig_Loader_Filesystem
+     */
+    private $loader;
 
     /**
-     * @var TwigFilesystem
+     * @var \Twig_Environment
      */
-    protected $loader;
+    private $engine;
 
-    /**
-     * @var TwigEnvironment
-     */
-    protected $engine;
-
-    public function __construct(TwigEnvironment $engine = null, string $extension = 'html')
+    public function __construct(\Twig_Environment $engine)
     {
-        $this->engine = $engine ?: $this->createTwigEngine();
+        $this->engine = $engine;
         $this->loader = $this->engine->getLoader();
-        $this->extension = is_string($extension) ? $extension : 'html';
-    }
-
-    /**
-     * Create a default Twig environment.
-     */
-    private function createTwigEngine(): TwigEnvironment
-    {
-        $loader = new TwigFilesystem();
-
-        return new TwigEnvironment($loader);
     }
 
     /**
@@ -65,7 +51,7 @@ class TwigRenderer implements TemplateRendererInterface
      */
     public function addPath(string $path, string $namespace = null): void
     {
-        $namespace = $namespace ?: TwigFilesystem::MAIN_NAMESPACE;
+        $namespace = $namespace ?: $this->twigViewsNamespace;
         $this->loader->addPath($path, $namespace);
     }
 
@@ -78,7 +64,7 @@ class TwigRenderer implements TemplateRendererInterface
     {
         $paths = [];
         foreach ($this->loader->getNamespaces() as $namespace) {
-            $name = ($namespace !== TwigFilesystem::MAIN_NAMESPACE) ? $namespace : null;
+            $name = ($namespace !== $this->twigViewsNamespace) ? $namespace : null;
             foreach ($this->loader->getPaths($namespace) as $path) {
                 $paths[] = new TemplatePath($path, $name);
             }
@@ -96,9 +82,9 @@ class TwigRenderer implements TemplateRendererInterface
      */
     public function exists(string $name): bool
     {
-        $name = $this->normalizeTemplate($name);
+        $template = $this->normalizeTemplate($name);
 
-        return $this->loader->exists($name);
+        return $this->loader->exists($template);
     }
 
     /**

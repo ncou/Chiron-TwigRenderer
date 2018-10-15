@@ -2,6 +2,7 @@
 
 use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
+use Chiron\Views\TwigRendererFactory;
 use PHPUnit\Framework\TestCase;
 
 class TwigRendererTest extends TestCase
@@ -13,7 +14,7 @@ class TwigRendererTest extends TestCase
 
     protected function setUp()
     {
-        $this->twigEnvironment = new Twig_Environment(new Twig_Loader_Filesystem());
+        $this->twigEnvironment = new \Twig_Environment(new \Twig_Loader_Filesystem());
     }
 
     public function assertTemplatePath($path, TemplatePath $templatePath, $message = null)
@@ -41,23 +42,16 @@ class TwigRendererTest extends TestCase
         $this->assertEmpty($templatePath->getNamespace(), $message);
     }
 
-    public function testCanPassEngineToConstructor()
+    public function testInstantiatingWithoutEngineLazyLoadsOne()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
         $this->assertEmpty($renderer->getPaths());
     }
 
-    public function testInstantiatingWithoutEngineLazyLoadsOne()
-    {
-        $renderer = new TwigRenderer();
-        $this->assertInstanceOf(TwigRenderer::class, $renderer);
-        $this->assertEmpty($renderer->getPaths());
-    }
-
     public function testCanAddPathWithEmptyNamespace()
     {
-        $renderer = new TwigRenderer();
+        $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/TestAsset');
         $paths = $renderer->getPaths();
         $this->assertInternalType('array', $paths);
@@ -69,7 +63,7 @@ class TwigRendererTest extends TestCase
 
     public function testCanAddPathWithNamespace()
     {
-        $renderer = new TwigRenderer();
+        $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/TestAsset', 'test');
         $paths = $renderer->getPaths();
         $this->assertInternalType('array', $paths);
@@ -81,7 +75,7 @@ class TwigRendererTest extends TestCase
 
     public function testDelegatesRenderingToUnderlyingImplementation()
     {
-        $renderer = new TwigRenderer();
+        $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/TestAsset');
         $result = $renderer->render('testTemplate.html', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);

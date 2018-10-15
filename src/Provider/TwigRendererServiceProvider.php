@@ -4,6 +4,7 @@ namespace Chiron\Views\Provider;
 
 use Chiron\Views\TemplateRendererInterface;
 use Chiron\Views\TwigRenderer;
+use Chiron\Views\TwigRendererFactory;
 use Psr\Container\ContainerInterface;
 
 class TwigRendererServiceProvider
@@ -23,18 +24,22 @@ class TwigRendererServiceProvider
      */
     public function register(ContainerInterface $container)
     {
-        // config
+        // add default config settings if not already presents in the container
         if (! $container->has('templates')) {
-            $container['templates'] = [
+            $container->set('templates', [
                 'extension' => 'html',
                 'paths'     => [],
-            ];
+            ]);
         }
-        // factory
-        $container[TwigRenderer::class] = function ($c) {
-            $config = $c->get('templates');
+        // *** factories ***
+        $container[TwigRendererFactory::class] = function ($c) {
+            return call_user_func(new TwigRendererFactory(), $c);
+        };
 
-            $renderer = new TwigRenderer(null, $config['extension']);
+        $container[TwigRenderer::class] = function ($c) {
+            $renderer = $c->get(TwigRendererFactory::class);
+
+            $config = $c->get('templates');
 
             // Add template paths
             $allPaths = isset($config['paths']) && is_array($config['paths']) ? $config['paths'] : [];
@@ -45,9 +50,12 @@ class TwigRendererServiceProvider
                 }
             }
 
+            // Add template file extension
+            $renderer->setExtension($config['extension']);
+
             return $renderer;
         };
-        // alias
+        // *** alias ***
         $container[TemplateRendererInterface::class] = function ($c) {
             return $c->get(TwigRenderer::class);
         };
