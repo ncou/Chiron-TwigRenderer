@@ -1,8 +1,8 @@
 <?php
 
-use Chiron\Views\TemplateRendererInterface;
 use Chiron\Container\Container;
 use Chiron\Views\Provider\TwigRendererServiceProvider;
+use Chiron\Views\TemplateRendererInterface;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
 
