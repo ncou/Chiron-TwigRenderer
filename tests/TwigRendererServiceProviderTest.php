@@ -27,7 +27,7 @@ class TwigRendererServiceProviderTest extends TestCase
     public function testWithTemplatesSettingsInTheContainer()
     {
         $c = new Container();
-        $c->set('templates', ['extension' => 'html.twig', 'paths'     => ['foobar' => '/', 'tests/']]);
+        $c['templates'] = ['extension' => 'html.twig', 'paths'     => ['foobar' => '/', 'tests/']];
         (new TwigRendererServiceProvider())->register($c);
 
         $renderer = $c->get(TwigRenderer::class);

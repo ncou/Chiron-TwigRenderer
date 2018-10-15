@@ -110,7 +110,11 @@ class TwigRendererFactory
         }
         // Adding custom globals (objects or static classes)
         if (! empty($this->runtimeLoaders)) {
-            $this->addRuntimeLoaders($this->runtimeLoaders);
+            $this->addRuntimeLoaders($this->runtimeLoaders, $container);
+        }
+        // Adding custom extensions
+        if (! empty($this->extensions)) {
+            $this->addExtensions($this->extensions, $container);
         }
         // Adding custom globals (objects or static classes)
         if (! empty($this->globals)) {
@@ -123,10 +127,6 @@ class TwigRendererFactory
         // Adding custom filters
         if (! empty($this->filters)) {
             $this->addFilters($this->filters);
-        }
-        // Adding custom extensions
-        if (! empty($this->extensions)) {
-            $this->addExtensions($this->extensions);
         }
         // Change lexer syntax (must be set after other settings)
         if (! empty($this->lexer)) {
@@ -189,11 +189,13 @@ class TwigRendererFactory
      * Adds custom extensions.
      *
      * @param array $extensions @see self::$extensions
+     * @param ContainerInterface $container
      */
-    private function addExtensions(array $extensions): void
+    private function addExtensions(array $extensions, ContainerInterface $container): void
     {
         foreach ($extensions as $extName) {
-            $this->twig->addExtension(is_object($extName) ? $extName : $this->createObject($extName));
+            $extension = $this->loadExtension($extName, $container);
+            $this->twig->addExtension($extension);
         }
     }
 
@@ -201,11 +203,13 @@ class TwigRendererFactory
      * Adds runtime loaders.
      *
      * @param array $runtimeLoaders @see self::$runtimeLoaders
+     * @param ContainerInterface $container
      */
-    private function addRuntimeLoaders(array $runtimeLoaders): void
+    private function addRuntimeLoaders(array $runtimeLoaders, ContainerInterface $container): void
     {
         foreach ($runtimeLoaders as $loaderName) {
-            $this->twig->addRuntimeLoader(is_object($loaderName) ? $loaderName : $this->createObject($loaderName));
+            $runtimeLoader = $this->loadRuntimeLoader($loaderName, $container);
+            $this->twig->addRuntimeLoader($runtimeLoader);
         }
     }
 
@@ -256,78 +260,16 @@ class TwigRendererFactory
     }
 
     /**
-     * Creates a new object using the given configuration.
-     *
-     * You may view this method as an enhanced version of the `new` operator.
-     * The method supports creating an object based on a class name, a configuration array or
-     * an anonymous function.
-     *
-     * Below are some usage examples:
-     *
-     * ```php
-     * // create an object using a class name
-     * $object = Yii::createObject('yii\db\Connection');
-     *
-     * // create an object using a configuration array
-     * $object = Yii::createObject([
-     *     'class' => 'yii\db\Connection',
-     *     'dsn' => 'mysql:host=127.0.0.1;dbname=demo',
-     *     'username' => 'root',
-     *     'password' => '',
-     *     'charset' => 'utf8',
-     * ]);
-     *
-     * // create an object with two constructor parameters
-     * $object = \Yii::createObject('MyClass', [$param1, $param2]);
-     * ```
-     *
-     * Using [[\yii\di\Container|dependency injection container]], this method can also identify
-     * dependent objects, instantiate them and inject them into the newly created object.
-     *
-     * @param string|array|callable $type the object type. This can be specified in one of the following forms:
-     *
-     * - a string: representing the class name of the object to be created
-     * - a configuration array: the array must contain a `class` element which is treated as the object class,
-     *   and the rest of the name-value pairs will be used to initialize the corresponding object properties
-     * - a PHP callable: either an anonymous function or an array representing a class method (`[$class or $object, $method]`).
-     *   The callable should return a new instance of the object being created.
-     * @param array $params the constructor parameters
-     *
-     * @throws InvalidConfigException if the configuration is invalid.
-     *
-     * @return object the created object
-     *
-     * @see \yii\di\Container
-     */
-    public static function createObject($type, array $params = [])
-    {
-        if (is_string($type)) {
-            return static::$container->get($type, $params);
-        } elseif (is_array($type) && isset($type['class'])) {
-            $class = $type['class'];
-            unset($type['class']);
-
-            return static::$container->get($class, $params, $type);
-        } elseif (is_callable($type, true)) {
-            return static::$container->invoke($type, $params);
-        } elseif (is_array($type)) {
-            throw new InvalidConfigException('Object configuration must be an array containing a "class" element.');
-        }
-
-        throw new InvalidConfigException('Unsupported configuration type: ' . gettype($type));
-    }
-
-    /**
      * Load an extension.
      *
      * If the extension is a string service name, retrieves it from the container.
      *
      * If the extension is not a TwigExtensionInterface, raises an exception.
      *
-     * @param string|Twig_ExtensionInterface $extension
+     * @param string|\Twig_ExtensionInterface $extension
+     * @param ContainerInterface $container
      *
-     * @throws \InvalidArgumentException if the extension provided or
-     *                                   retrieved does not implement TwigExtensionInterface.
+     * @throws \InvalidArgumentException if the extension provided or retrieved does not implement TwigExtensionInterface.
      */
     private function loadExtension($extension, ContainerInterface $container): \Twig_ExtensionInterface
     {
@@ -347,10 +289,10 @@ class TwigRendererFactory
     }
 
     /**
-     * @param string|Twig_RuntimeLoaderInterface $runtimeLoader
+     * @param string|\Twig_RuntimeLoaderInterface $runtimeLoader
+     * @param ContainerInterface $container
      *
-     * @throws \InvalidArgumentException if a given $runtimeLoader
-     *                                   or the service it represents is not a TwigRuntimeLoaderInterface instance.
+     * @throws \InvalidArgumentException if a given $runtimeLoader or the service it represents is not a TwigRuntimeLoaderInterface instance.
      */
     private function loadRuntimeLoader($runtimeLoader, ContainerInterface $container): \Twig_RuntimeLoaderInterface
     {

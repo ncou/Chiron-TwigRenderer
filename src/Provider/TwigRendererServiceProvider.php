@@ -26,10 +26,10 @@ class TwigRendererServiceProvider
     {
         // add default config settings if not already presents in the container
         if (! $container->has('templates')) {
-            $container->set('templates', [
+            $container['templates'] = [
                 'extension' => 'html',
                 'paths'     => [],
-            ]);
+            ];
         }
         // *** factories ***
         $container[TwigRendererFactory::class] = function ($c) {
