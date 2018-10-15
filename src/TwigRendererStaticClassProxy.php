@@ -1,6 +1,8 @@
 <?php
 
-namespace Chiron\View;
+declare(strict_types=1);
+
+namespace Chiron\Views;
 
 /**
  * Class-proxy for static classes

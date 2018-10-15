@@ -102,7 +102,7 @@ class TwigRendererFactory
 
         // Add debug extension
         if ($debug) {
-            $environment->addExtension(new \Twig_Extension_Debug());
+            $this->twig->addExtension(new \Twig_Extension_Debug());
         }
         // adjust the timezone
         if (isset($timezone)) {
@@ -133,7 +133,7 @@ class TwigRendererFactory
             $this->setLexer($this->lexer);
         }
 
-        return new TwigRenderer($this->twig, 'html');
+        return new TwigRenderer($this->twig);
     }
 
     private function setTimezone(string $timezone): void
@@ -143,7 +143,7 @@ class TwigRendererFactory
         }
 
         try {
-            $timezone = new DateTimeZone($timezone);
+            $timezone = new \DateTimeZone($timezone);
         } catch (\Exception $e) {
             throw new \InvalidArgumentException(sprintf('Unknown or invalid timezone: "%s"', $timezone));
         }
