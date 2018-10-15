@@ -4,13 +4,14 @@ namespace Chiron\View;
 
 /**
  * Class-proxy for static classes
- * Needed because you can't pass static class to Twig other way
+ * Needed because you can't pass static class to Twig other way.
  *
  * @author Leonid Svyatov <leonid@svyatov.ru>
  */
 class TwigRendererStaticClassProxy
 {
     private $_staticClassName;
+
     /**
      * @param string $staticClassName
      */
@@ -18,8 +19,10 @@ class TwigRendererStaticClassProxy
     {
         $this->_staticClassName = $staticClassName;
     }
+
     /**
      * @param string $property
+     *
      * @return bool
      */
     public function __isset($property)
@@ -27,11 +30,13 @@ class TwigRendererStaticClassProxy
         $class = new \ReflectionClass($this->_staticClassName);
         $staticProps = $class->getStaticProperties();
         $constants = $class->getConstants();
+
         return array_key_exists($property, $staticProps) || array_key_exists($property, $constants);
     }
 
     /**
      * @param string $property
+     *
      * @return mixed
      */
     public function __get($property)
@@ -45,20 +50,25 @@ class TwigRendererStaticClassProxy
 
         return $class->getStaticPropertyValue($property);
     }
+
     /**
      * @param string $property
-     * @param mixed $value
+     * @param mixed  $value
+     *
      * @return mixed
      */
     public function __set($property, $value)
     {
         $class = new \ReflectionClass($this->_staticClassName);
         $class->setStaticPropertyValue($property, $value);
+
         return $value;
     }
+
     /**
      * @param string $method
-     * @param array $arguments
+     * @param array  $arguments
+     *
      * @return mixed
      */
     public function __call($method, $arguments)
