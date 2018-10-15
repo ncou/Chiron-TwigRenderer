@@ -79,4 +79,20 @@ class TwigRendererTest extends TestCase
         $result = $renderer->render('testTemplate.html', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);
     }
+
+    public function testTemplateExistsWithExtensionInFileName()
+    {
+        $renderer = new TwigRenderer($this->twigEnvironment);
+        $renderer->addPath(__DIR__ . '/TestAsset');
+        $result = $renderer->exists('testTemplate.html');
+        $this->assertTrue($result);
+    }
+
+    public function testTemplateExistsWithoutExtensionInFileName()
+    {
+        $renderer = new TwigRenderer($this->twigEnvironment);
+        $renderer->addPath(__DIR__ . '/TestAsset');
+        $result = $renderer->exists('testTemplate');
+        $this->assertTrue($result);
+    }
 }

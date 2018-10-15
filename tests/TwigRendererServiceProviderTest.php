@@ -1,5 +1,6 @@
 <?php
 
+use Chiron\Views\TemplateRendererInterface;
 use Chiron\Container\Container;
 use Chiron\Views\Provider\TwigRendererServiceProvider;
 use Chiron\Views\TwigRenderer;
@@ -13,10 +14,14 @@ class TwigRendererServiceProviderTest extends TestCase
         (new TwigRendererServiceProvider())->register($c);
 
         $renderer = $c->get(TwigRenderer::class);
-
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
         $this->assertEmpty($renderer->getPaths());
-        // TODO : ajouter un assert sur l'extension du template qui doit avoir la valeur par défaut = html
+
+        $this->assertEquals($renderer->getExtension(), 'html');
+
+        // test the instance using the container alias
+        $alias = $c->get(TemplateRendererInterface::class);
+        $this->assertInstanceOf(TwigRenderer::class, $alias);
     }
 
     public function testWithTemplatesSettingsInTheContainer()
@@ -26,8 +31,10 @@ class TwigRendererServiceProviderTest extends TestCase
         (new TwigRendererServiceProvider())->register($c);
 
         $renderer = $c->get(TwigRenderer::class);
-
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
+        $this->assertNotEmpty($renderer->getPaths());
+
+        $this->assertEquals($renderer->getExtension(), 'html.twig');
 
         $paths = $renderer->getPaths();
 
@@ -36,7 +43,5 @@ class TwigRendererServiceProviderTest extends TestCase
 
         $this->assertNull($paths[1]->getNamespace());
         $this->assertEquals($paths[1]->getPath(), 'tests');
-
-        // TODO : ajouter un assert sur l'extension du template qui doit avoir la valeur par défaut = html
     }
 }
