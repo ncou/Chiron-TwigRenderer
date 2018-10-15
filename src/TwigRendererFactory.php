@@ -188,7 +188,7 @@ class TwigRendererFactory
     /**
      * Adds custom extensions.
      *
-     * @param array $extensions @see self::$extensions
+     * @param array              $extensions @see self::$extensions
      * @param ContainerInterface $container
      */
     private function addExtensions(array $extensions, ContainerInterface $container): void
@@ -202,7 +202,7 @@ class TwigRendererFactory
     /**
      * Adds runtime loaders.
      *
-     * @param array $runtimeLoaders @see self::$runtimeLoaders
+     * @param array              $runtimeLoaders @see self::$runtimeLoaders
      * @param ContainerInterface $container
      */
     private function addRuntimeLoaders(array $runtimeLoaders, ContainerInterface $container): void
@@ -267,7 +267,7 @@ class TwigRendererFactory
      * If the extension is not a TwigExtensionInterface, raises an exception.
      *
      * @param string|\Twig_ExtensionInterface $extension
-     * @param ContainerInterface $container
+     * @param ContainerInterface              $container
      *
      * @throws \InvalidArgumentException if the extension provided or retrieved does not implement TwigExtensionInterface.
      */
@@ -290,7 +290,7 @@ class TwigRendererFactory
 
     /**
      * @param string|\Twig_RuntimeLoaderInterface $runtimeLoader
-     * @param ContainerInterface $container
+     * @param ContainerInterface                  $container
      *
      * @throws \InvalidArgumentException if a given $runtimeLoader or the service it represents is not a TwigRuntimeLoaderInterface instance.
      */
