@@ -13,6 +13,7 @@ class TwigRenderer implements TemplateRendererInterface
      * @var string twig namespace to use in templates
      */
     public $twigViewsNamespace = \Twig_Loader_Filesystem::MAIN_NAMESPACE;
+
     /**
      * @var \Twig_Loader_Filesystem
      */

@@ -2,7 +2,6 @@
 
 use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
-use Chiron\Views\TwigRendererFactory;
 use PHPUnit\Framework\TestCase;
 
 class TwigRendererTest extends TestCase
