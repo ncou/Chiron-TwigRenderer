@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Chiron\Views;
 
 /**
- * Class-proxy for static classes
+ * Class-proxy for static classes (warning you can't use this class to set a value for a static property)
  * Needed because you can't pass static class to Twig other way.
- *
- * @author Leonid Svyatov <leonid@svyatov.ru>
  */
 class TwigRendererStaticClassProxy
 {
@@ -45,26 +43,15 @@ class TwigRendererStaticClassProxy
     {
         $class = new \ReflectionClass($this->_staticClassName);
 
-        $constants = $class->getConstants();
-        if (array_key_exists($property, $constants)) {
-            return $class->getConstant($property);
+        // check in the public class contants if the element exists
+        foreach ($class->getReflectionConstants() as $classConstant) {
+            if ($classConstant->isPublic() && $classConstant->getName() === $property) {
+                return $classConstant->getValue();
+            }
         }
 
+        // else it could be a public static element, and if not found this function will throw a ReflexionException.
         return $class->getStaticPropertyValue($property);
-    }
-
-    /**
-     * @param string $property
-     * @param mixed  $value
-     *
-     * @return mixed
-     */
-    public function __set($property, $value)
-    {
-        $class = new \ReflectionClass($this->_staticClassName);
-        $class->setStaticPropertyValue($property, $value);
-
-        return $value;
     }
 
     /**
