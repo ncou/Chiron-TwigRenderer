@@ -8,12 +8,15 @@
         "php": "^7.1",
         "twig/twig": "^2.5",
         "psr/container": "^1.0",
-        "chiron/template": "^1.2"
+        "chiron/template": "^1.3"
   },
   "autoload": {
       "psr-4": {
           "Chiron\\Views\\": "src"
       }
+  },
+  "autoload-dev" : {
+      "psr-4": { "Chiron\\Views\\Tests\\" : "tests/" }
   },
   "require-dev": {
     "phpunit/phpunit": "^7.0",

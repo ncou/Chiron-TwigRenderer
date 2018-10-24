@@ -78,7 +78,7 @@ class TwigRendererFactory
     public function __invoke(ContainerInterface $container): TwigRenderer
     {
         $config = $container->has('config') ? $container->get('config') : [];
-        $config = isset($config['twig']) ?? [];
+        $config = isset($config['twig']) ? $config['twig'] : [];
 
         // TODO : ne plus utiliser de variable privées de classe car cela ne sert à rien (sauf pour $this->twig). Pour l'instant on utilise ces constantes pour pouvoir mettre la documentation en début de classe !!!!
         $this->runtimeLoaders = $config['runtime_loaders'] ?? [];

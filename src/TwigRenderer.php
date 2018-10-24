@@ -38,12 +38,9 @@ class TwigRenderer implements TemplateRendererInterface
      */
     public function render(string $name, array $params = []): string
     {
-        // Merge parameters based on requested template name
-        //$params = $this->mergeParams($name, $this->normalizeParams($params));
         $params = array_merge($this->attributes, $params);
         $name = $this->normalizeTemplate($name);
-        // Merge parameters based on normalized template name
-        //$params = $this->mergeParams($name, $params);
+
         return $this->engine->render($name, $params);
     }
 

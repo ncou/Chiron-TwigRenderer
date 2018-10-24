@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Chiron\Views\Tests;
+
 use Chiron\Container\Container;
 use Chiron\Views\Provider\TwigRendererServiceProvider;
 use Chiron\Views\TemplateRendererInterface;

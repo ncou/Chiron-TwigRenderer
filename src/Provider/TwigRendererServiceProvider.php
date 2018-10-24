@@ -31,6 +31,7 @@ class TwigRendererServiceProvider
                 'paths'     => [],
             ];
         }
+
         // *** factories ***
         $container[TwigRendererFactory::class] = function ($c) {
             return call_user_func(new TwigRendererFactory(), $c);
@@ -41,6 +42,9 @@ class TwigRendererServiceProvider
 
             $config = $c->get('templates');
 
+            // Add template file extension
+            $renderer->setExtension($config['extension']);
+
             // Add template paths
             $allPaths = isset($config['paths']) && is_array($config['paths']) ? $config['paths'] : [];
             foreach ($allPaths as $namespace => $paths) {
@@ -50,11 +54,9 @@ class TwigRendererServiceProvider
                 }
             }
 
-            // Add template file extension
-            $renderer->setExtension($config['extension']);
-
             return $renderer;
         };
+
         // *** alias ***
         $container[TemplateRendererInterface::class] = function ($c) {
             return $c->get(TwigRenderer::class);

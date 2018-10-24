@@ -1,5 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
+namespace Chiron\Views\Tests;
+
 use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
@@ -51,31 +55,31 @@ class TwigRendererTest extends TestCase
     public function testCanAddPathWithEmptyNamespace()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
-        $renderer->addPath(__DIR__ . '/TestAsset');
+        $renderer->addPath(__DIR__ . '/Fixtures');
         $paths = $renderer->getPaths();
         $this->assertInternalType('array', $paths);
         $this->assertCount(1, $paths);
-        $this->assertTemplatePath(__DIR__ . '/TestAsset', $paths[0]);
-        $this->assertTemplatePathString(__DIR__ . '/TestAsset', $paths[0]);
+        $this->assertTemplatePath(__DIR__ . '/Fixtures', $paths[0]);
+        $this->assertTemplatePathString(__DIR__ . '/Fixtures', $paths[0]);
         $this->assertEmptyTemplatePathNamespace($paths[0]);
     }
 
     public function testCanAddPathWithNamespace()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
-        $renderer->addPath(__DIR__ . '/TestAsset', 'test');
+        $renderer->addPath(__DIR__ . '/Fixtures', 'test');
         $paths = $renderer->getPaths();
         $this->assertInternalType('array', $paths);
         $this->assertCount(1, $paths);
-        $this->assertTemplatePath(__DIR__ . '/TestAsset', $paths[0]);
-        $this->assertTemplatePathString(__DIR__ . '/TestAsset', $paths[0]);
+        $this->assertTemplatePath(__DIR__ . '/Fixtures', $paths[0]);
+        $this->assertTemplatePathString(__DIR__ . '/Fixtures', $paths[0]);
         $this->assertTemplatePathNamespace('test', $paths[0]);
     }
 
     public function testDelegatesRenderingToUnderlyingImplementation()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
-        $renderer->addPath(__DIR__ . '/TestAsset');
+        $renderer->addPath(__DIR__ . '/Fixtures');
         $result = $renderer->render('testTemplate.html', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);
     }
@@ -83,7 +87,7 @@ class TwigRendererTest extends TestCase
     public function testTemplateExistsWithExtensionInFileName()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
-        $renderer->addPath(__DIR__ . '/TestAsset');
+        $renderer->addPath(__DIR__ . '/Fixtures');
         $result = $renderer->exists('testTemplate.html');
         $this->assertTrue($result);
     }
@@ -91,7 +95,7 @@ class TwigRendererTest extends TestCase
     public function testTemplateExistsWithoutExtensionInFileName()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
-        $renderer->addPath(__DIR__ . '/TestAsset');
+        $renderer->addPath(__DIR__ . '/Fixtures');
         $result = $renderer->exists('testTemplate');
         $this->assertTrue($result);
     }
