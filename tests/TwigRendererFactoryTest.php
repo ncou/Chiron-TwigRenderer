@@ -111,9 +111,9 @@ class TwigRendererFactoryTest extends TestCase
             'callable_add_*' => function ($symbols, $val) {
                 return $val . $symbols;
             },
-            'callable_sum' => function ($a, $b) {
+            'callable_sum' => [function ($a, $b) {
                 return $a + $b;
-            },
+            }, ['is_safe' => ['html']]],
         ];
 
         $renderer = $this->createRenderer($config);
@@ -144,9 +144,9 @@ class TwigRendererFactoryTest extends TestCase
             'callable_rot13' => function ($string) {
                 return str_rot13($string);
             },
-            'callable_add_*' => function ($symbols, $val) {
+            'callable_add_*' => [function ($symbols, $val) {
                 return $val . $symbols;
-            },
+            }, ['is_safe' => ['html']]],
         ];
 
         $renderer = $this->createRenderer($config);
