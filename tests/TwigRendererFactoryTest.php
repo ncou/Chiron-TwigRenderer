@@ -163,7 +163,7 @@ class TwigRendererFactoryTest extends TestCase
         $this->assertEquals($content, 'Sbbone');
     }
 
-    public function testSimpleExtension()
+    public function testExtension()
     {
         $config['twig']['extensions'] = [
             new CustomExtension(),
@@ -171,11 +171,11 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('simpleExtension.twig');
+        $content = $renderer->render('extension.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
-    public function testSimpleExtensionDefinedInContainer()
+    public function testExtensionDefinedInContainer()
     {
         $c = new Container();
         $c->set(CustomExtension::class, new CustomExtension());
@@ -186,7 +186,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config, $c);
 
-        $content = $renderer->render('simpleExtension.twig');
+        $content = $renderer->render('extension.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
@@ -194,10 +194,49 @@ class TwigRendererFactoryTest extends TestCase
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Twig extension must be an instance of Twig_ExtensionInterface; "string" given.
      */
-    public function testSimpleExtensionNotDefinedInContainer()
+    public function testExtensionNotDefinedInContainer()
     {
         $config['twig']['extensions'] = [
             CustomExtension::class,
+        ];
+
+        $renderer = $this->createRenderer($config);
+    }
+
+    public function testRuntimeLoader()
+    {
+        $c = new Container();
+        $config['twig']['runtime_loaders'] = [
+            new \Twig_ContainerRuntimeLoader($c),
+        ];
+
+        $renderer = $this->createRenderer($config);
+
+        $this->assertInstanceOf(TwigRenderer::class, $renderer);
+    }
+
+    public function testRuntimeLoaderDefinedInContainer()
+    {
+        $c = new Container();
+        $c->set('RuntimeLoader', new \Twig_ContainerRuntimeLoader($c));
+
+        $config['twig']['runtime_loaders'] = [
+            'RuntimeLoader',
+        ];
+
+        $renderer = $this->createRenderer($config, $c);
+
+        $this->assertInstanceOf(TwigRenderer::class, $renderer);
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Twig runtime loader must be an instance of Twig_RuntimeLoaderInterface; "string" given.
+     */
+    public function testRuntimeLoaderNotDefinedInContainer()
+    {
+        $config['twig']['runtime_loaders'] = [
+            'RuntimeLoader',
         ];
 
         $renderer = $this->createRenderer($config);

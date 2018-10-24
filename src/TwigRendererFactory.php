@@ -8,6 +8,7 @@ use Psr\Container\ContainerInterface;
 
 //https://github.com/zendframework/zend-expressive-twigrenderer/blob/master/src/TwigEnvironmentFactory.php
 //https://github.com/yiisoft/yii-twig/blob/master/src/ViewRenderer.php
+//https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L40
 
 class TwigRendererFactory
 {
@@ -302,7 +303,7 @@ class TwigRendererFactory
         }
         if (! $runtimeLoader instanceof \Twig_RuntimeLoaderInterface) {
             throw new \InvalidArgumentException(sprintf(
-                'Twig runtime loader must be an instance of %s; "%s" given,',
+                'Twig runtime loader must be an instance of %s; "%s" given.',
                 \Twig_RuntimeLoaderInterface::class,
                 is_object($runtimeLoader) ? get_class($runtimeLoader) : gettype($runtimeLoader)
             ));
