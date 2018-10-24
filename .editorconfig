@@ -14,3 +14,12 @@ trim_trailing_whitespace = false
 [*.yml]
 indent_style = space
 indent_size = 2
+
+# Ignore paths
+[/tests/Fixtures/**]
+charset = none
+end_of_line = none
+indent_size = none
+indent_style = none
+insert_final_newline = none
+trim_trailing_whitespace = none

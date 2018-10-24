@@ -91,6 +91,7 @@ class TwigRendererFactory
 
         $timezone = $config['timezone'] ?? null;
         $debug = (bool) ($this->options['debug'] ?? false);
+
         /*
                 $options = array_merge([
                     'cache' => Yii::getAlias($this->cachePath),
@@ -251,6 +252,7 @@ class TwigRendererFactory
                 case $func instanceof \Twig_SimpleFunction || $func instanceof \Twig_SimpleFilter:
                     $twigElement = $func;
             }
+
             if ($twigElement !== null) {
                 $this->twig->{'add' . $classType}($twigElement);
             } else {

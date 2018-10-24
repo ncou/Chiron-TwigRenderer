@@ -99,4 +99,12 @@ class TwigRenderer implements TemplateRendererInterface
 
         return $template;
     }
+
+    /**
+     * Return the Twig Engine.
+     */
+    public function twig(): \Twig_Environment
+    {
+        return $this->engine;
+    }
 }
