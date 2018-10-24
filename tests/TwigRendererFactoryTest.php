@@ -79,6 +79,16 @@ class TwigRendererFactoryTest extends TestCase
         $this->assertEquals('UTC', $timezone->getName());
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     */
+    public function testTimezoneInvalidFormat()
+    {
+        $config['twig']['timezone'] = 'Foobar';
+
+        $renderer = $this->createRenderer($config);
+    }
+
     public function testSimpleFunctions()
     {
         $config['twig']['functions'] = [

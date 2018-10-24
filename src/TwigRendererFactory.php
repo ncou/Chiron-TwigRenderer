@@ -139,10 +139,6 @@ class TwigRendererFactory
 
     private function setTimezone(string $timezone): void
     {
-        if (! is_string($timezone)) {
-            throw new \InvalidArgumentException('"timezone" configuration value must be a string');
-        }
-
         try {
             $timezone = new \DateTimeZone($timezone);
         } catch (\Exception $e) {
