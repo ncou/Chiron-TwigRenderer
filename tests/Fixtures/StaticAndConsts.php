@@ -6,7 +6,7 @@ namespace Chiron\Views\Tests\Fixtures;
 
 class StaticAndConsts
 {
-    const FIRST_CONST = 'I am a const!';
+    public const FIRST_CONST = 'I am a const!';
 
     public static $staticVar = 'I am a static var!';
 
