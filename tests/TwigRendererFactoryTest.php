@@ -9,12 +9,17 @@ use Chiron\Views\Tests\Fixtures\StaticAndConsts;
 use Chiron\Views\TwigRenderer;
 use Chiron\Views\TwigRendererFactory;
 use PHPUnit\Framework\TestCase;
+use Chiron\Views\Tests\Fixtures\CustomExtension;
+use Psr\Container\ContainerInterface;
 
 class TwigRendererFactoryTest extends TestCase
 {
-    private function createRenderer(array $config = []): TwigRenderer
+    private function createRenderer(array $config = [], ContainerInterface $c = null): TwigRenderer
     {
-        $c = new Container();
+        if ($c === null) {
+            $c = new Container();
+        }
+
         $c->set('config', $config);
 
         $renderer = call_user_func(new TwigRendererFactory(), $c);
@@ -29,6 +34,9 @@ class TwigRendererFactoryTest extends TestCase
     {
         $renderer = $this->createRenderer();
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
+
+        $twig = $renderer->twig();
+        $this->assertInstanceOf(\Twig_Environment::class, $twig);
     }
 
     public function testStaticAndConsts()
@@ -153,6 +161,46 @@ class TwigRendererFactoryTest extends TestCase
         $this->assertEquals($content, 'val42');
         $content = $renderer->render('simpleFilters5.twig');
         $this->assertEquals($content, 'Sbbone');
+    }
+
+    public function testSimpleExtension()
+    {
+        $config['twig']['extensions'] = [
+            new CustomExtension(),
+        ];
+
+        $renderer = $this->createRenderer($config);
+
+        $content = $renderer->render('simpleExtension.twig');
+        $this->assertEquals($content, 'Sbbone');
+    }
+
+    public function testSimpleExtensionDefinedInContainer()
+    {
+        $c = new Container();
+        $c->set(CustomExtension::class, new CustomExtension());
+
+        $config['twig']['extensions'] = [
+            CustomExtension::class,
+        ];
+
+        $renderer = $this->createRenderer($config, $c);
+
+        $content = $renderer->render('simpleExtension.twig');
+        $this->assertEquals($content, 'Sbbone');
+    }
+
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Twig extension must be an instance of Twig_ExtensionInterface; "string" given.
+     */
+    public function testSimpleExtensionNotDefinedInContainer()
+    {
+        $config['twig']['extensions'] = [
+            CustomExtension::class,
+        ];
+
+        $renderer = $this->createRenderer($config);
     }
 
     public function testLexerOptions()

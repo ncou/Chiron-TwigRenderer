@@ -247,6 +247,8 @@ class TwigRendererFactory
                     break;
                 case $func instanceof \Twig_SimpleFunction || $func instanceof \Twig_SimpleFilter:
                     $twigElement = $func;
+
+                    break;
             }
 
             if ($twigElement !== null) {
@@ -277,7 +279,7 @@ class TwigRendererFactory
         }
         if (! $extension instanceof \Twig_ExtensionInterface) {
             throw new \InvalidArgumentException(sprintf(
-                'Twig extension must be an instance of %s; "%s" given,',
+                'Twig extension must be an instance of %s; "%s" given.',
                 \Twig_ExtensionInterface::class,
                 is_object($extension) ? get_class($extension) : gettype($extension)
             ));
