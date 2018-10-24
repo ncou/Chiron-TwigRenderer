@@ -12,7 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class TwigRendererFactoryTest extends TestCase
 {
-    private function createRenderer(array $config = []) : TwigRenderer
+    private function createRenderer(array $config = []): TwigRenderer
     {
         $c = new Container();
         $c->set('config', $config);
@@ -24,6 +24,7 @@ class TwigRendererFactoryTest extends TestCase
 
         return $renderer;
     }
+
     public function testConstructor()
     {
         $renderer = $this->createRenderer();
@@ -81,21 +82,21 @@ class TwigRendererFactoryTest extends TestCase
     public function testSimpleFunctions()
     {
         $config['twig']['functions'] = [
-                    'json_encode' => '\Chiron\Views\Tests\Fixtures\JsonHelper::encode',
-                    new \Twig_SimpleFunction('rot13', 'str_rot13'),
-                    new \Twig_SimpleFunction('add_*', function ($symbols, $val) {
-                        return $val . $symbols;
-                    }, ['is_safe' => ['html']]),
-                    'callable_rot13' => function ($string) {
-                        return str_rot13($string);
-                    },
-                    'callable_add_*' => function ($symbols, $val) {
-                        return $val . $symbols;
-                    },
-                    'callable_sum' => function ($a, $b) {
-                        return $a + $b;
-                    },
-                ];
+            'json_encode' => '\Chiron\Views\Tests\Fixtures\JsonHelper::encode',
+            new \Twig_SimpleFunction('rot13', 'str_rot13'),
+            new \Twig_SimpleFunction('add_*', function ($symbols, $val) {
+                return $val . $symbols;
+            }, ['is_safe' => ['html']]),
+            'callable_rot13' => function ($string) {
+                return str_rot13($string);
+            },
+            'callable_add_*' => function ($symbols, $val) {
+                return $val . $symbols;
+            },
+            'callable_sum' => function ($a, $b) {
+                return $a + $b;
+            },
+        ];
 
         $renderer = $this->createRenderer($config);
 
@@ -117,18 +118,18 @@ class TwigRendererFactoryTest extends TestCase
     public function testSimpleFilters()
     {
         $config['twig']['filters'] = [
-                    'string_rot13' => 'str_rot13',
-                    new \Twig_SimpleFilter('rot13', 'str_rot13'),
-                    new \Twig_SimpleFilter('add_*', function ($symbols, $val) {
-                        return $val . $symbols;
-                    }, ['is_safe' => ['html']]),
-                    'callable_rot13' => function ($string) {
-                        return str_rot13($string);
-                    },
-                    'callable_add_*' => function ($symbols, $val) {
-                        return $val . $symbols;
-                    },
-                ];
+            'string_rot13' => 'str_rot13',
+            new \Twig_SimpleFilter('rot13', 'str_rot13'),
+            new \Twig_SimpleFilter('add_*', function ($symbols, $val) {
+                return $val . $symbols;
+            }, ['is_safe' => ['html']]),
+            'callable_rot13' => function ($string) {
+                return str_rot13($string);
+            },
+            'callable_add_*' => function ($symbols, $val) {
+                return $val . $symbols;
+            },
+        ];
 
         $renderer = $this->createRenderer($config);
 
@@ -147,8 +148,8 @@ class TwigRendererFactoryTest extends TestCase
     public function testLexerOptions()
     {
         $config['twig']['lexer'] = [
-                        'tag_comment' => [ '{*', '*}' ],
-                    ];
+            'tag_comment' => ['{*', '*}'],
+        ];
 
         $renderer = $this->createRenderer($config);
 
