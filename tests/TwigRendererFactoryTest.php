@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Chiron\Views\Tests;
 
 use Chiron\Container\Container;
+use Chiron\Views\Tests\Fixtures\CustomExtension;
 use Chiron\Views\Tests\Fixtures\StaticAndConsts;
 use Chiron\Views\TwigRenderer;
 use Chiron\Views\TwigRendererFactory;
 use PHPUnit\Framework\TestCase;
-use Chiron\Views\Tests\Fixtures\CustomExtension;
 use Psr\Container\ContainerInterface;
 
 class TwigRendererFactoryTest extends TestCase

@@ -8,8 +8,8 @@ class CustomExtension extends \Twig_Extension
 {
     public function getFilters()
     {
-        return array(
+        return [
             new \Twig_Filter('ext_rot13', 'str_rot13'),
-        );
+        ];
     }
 }
