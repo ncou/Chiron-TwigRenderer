@@ -76,6 +76,17 @@ class TwigRendererFactory
      */
     private $lexer = [];
 
+    /**
+     * @var array Settings to format the dates.
+     *            Example: `['timezone' => 'Europe/Paris', 'format' => 'F j, Y H:i', 'interfal_format' => '%d days']`
+     */
+    private $date = [];
+    /**
+     * @var array Settings to format the numbers.
+     *            Example: `['decimals' => 2, 'decimal_point' => ',', 'thousands_separator' => ' ']`
+     */
+    private $number = [];
+
     public function __invoke(ContainerInterface $container): TwigRenderer
     {
         $config = $container->has('config') ? $container->get('config') : [];
