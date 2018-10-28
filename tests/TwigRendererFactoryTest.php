@@ -63,7 +63,7 @@ class TwigRendererFactoryTest extends TestCase
 
     public function testTimezoneDefined()
     {
-        $config['twig']['timezone'] = 'Europe/Paris';
+        $config['twig']['date']['timezone'] = 'Europe/Paris';
 
         date_default_timezone_set('UTC');
         $renderer = $this->createRenderer($config);
@@ -76,7 +76,7 @@ class TwigRendererFactoryTest extends TestCase
 
     public function testTimezoneNotDefined()
     {
-        $config['twig']['timezone'] = null;
+        $config['twig']['date']['timezone'] = null;
 
         date_default_timezone_set('UTC');
         $renderer = $this->createRenderer($config);
@@ -92,9 +92,39 @@ class TwigRendererFactoryTest extends TestCase
      */
     public function testTimezoneInvalidFormat()
     {
-        $config['twig']['timezone'] = 'Foobar';
+        $config['twig']['date']['timezone'] = 'Foobar';
 
         $renderer = $this->createRenderer($config);
+    }
+
+    public function testDateFormat()
+    {
+        $config['twig']['date']['format'] = 'Foo';
+        $config['twig']['date']['interval_format'] = 'Bar';
+
+        $renderer = $this->createRenderer($config);
+
+        $twig = $renderer->twig();
+        $dateFormats = $twig->getExtension(\Twig_Extension_Core::class)->getDateFormat();
+
+        $this->assertEquals('Foo', $dateFormats[0]);
+        $this->assertEquals('Bar', $dateFormats[1]);
+    }
+
+    public function testNumberFormat()
+    {
+        $config['twig']['number_format']['decimals'] = 10;
+        $config['twig']['number_format']['decimal_point'] = 'Foo';
+        $config['twig']['number_format']['thousands_separator'] = 'Bar';
+
+        $renderer = $this->createRenderer($config);
+
+        $twig = $renderer->twig();
+        $numberFormats = $twig->getExtension(\Twig_Extension_Core::class)->getNumberFormat();
+
+        $this->assertEquals(10, $numberFormats[0]);
+        $this->assertEquals('Foo', $numberFormats[1]);
+        $this->assertEquals('Bar', $numberFormats[2]);
     }
 
     public function testSimpleFunctions()

@@ -46,6 +46,7 @@ class TwigRendererServiceProvider
             $renderer->setExtension($config['extension']);
 
             // Add template paths
+            //TODO : https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L144
             $allPaths = isset($config['paths']) && is_array($config['paths']) ? $config['paths'] : [];
             foreach ($allPaths as $namespace => $paths) {
                 $namespace = is_numeric($namespace) ? null : $namespace;

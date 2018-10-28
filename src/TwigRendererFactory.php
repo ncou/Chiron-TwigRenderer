@@ -89,15 +89,19 @@ class TwigRendererFactory
         $this->filters = $config['filters'] ?? [];
         $this->extensions = $config['extensions'] ?? [];
         $this->lexer = $config['lexer'] ?? [];
+        $this->date = $config['date'] ?? [];
+        $this->number = $config['number_format'] ?? [];
 
-        $timezone = $config['timezone'] ?? null;
+        $timezone = $this->date['timezone'] ?? null;
+
+        $format = $this->date['format'] ?? 'F j, Y H:i';
+        $interval = $this->date['interval_format'] ?? '%d days';
+
+        $decimals = $this->number['decimals'] ?? 0;
+        $point = $this->number['decimal_point'] ?? '.';
+        $thousands = $this->number['thousands_separator'] ?? ',';
+
         $debug = (bool) ($this->options['debug'] ?? false);
-
-        /*
-                $options = array_merge([
-                    'cache' => Yii::getAlias($this->cachePath),
-                    'charset' => Yii::$app->charset,
-                ], $this->options);*/
 
         $loader = new \Twig_Loader_Filesystem();
         $this->twig = new \Twig_Environment($loader, $this->options);
@@ -106,7 +110,11 @@ class TwigRendererFactory
         if ($debug) {
             $this->twig->addExtension(new \Twig_Extension_Debug());
         }
-        // adjust the timezone
+        // Adjust the numbers format
+        $this->setNumberFormat($decimals, $point, $thousands);
+        // Adjust the dates format
+        $this->setDateFormat($format, $interval);
+        // Adjust the date timezone
         if (isset($timezone)) {
             $this->setTimezone($timezone);
         }
@@ -136,6 +144,16 @@ class TwigRendererFactory
         }
 
         return new TwigRenderer($this->twig);
+    }
+
+    private function setNumberFormat(int $decimals, string $point, string $thousands): void
+    {
+        $this->twig->getExtension(\Twig_Extension_Core::class)->setNumberFormat($decimals, $point, $thousands);
+    }
+
+    private function setDateFormat(string $format, string $interval): void
+    {
+        $this->twig->getExtension(\Twig_Extension_Core::class)->setDateFormat($format, $interval);
     }
 
     private function setTimezone(string $timezone): void
