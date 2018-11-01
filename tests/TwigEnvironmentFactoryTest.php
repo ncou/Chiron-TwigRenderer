@@ -7,8 +7,8 @@ namespace Chiron\Views\Tests;
 use Chiron\Container\Container;
 use Chiron\Views\Tests\Fixtures\CustomExtension;
 use Chiron\Views\Tests\Fixtures\StaticAndConsts;
-use Chiron\Views\TwigRenderer;
 use Chiron\Views\TwigEnvironmentFactory;
+use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
