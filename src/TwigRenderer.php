@@ -17,21 +17,21 @@ class TwigRenderer implements TemplateRendererInterface
     /**
      * @var \Twig_Loader_Filesystem
      */
-    private $loader;
+    private $twigLoader;
 
     /**
      * @var \Twig_Environment
      */
-    private $engine;
+    private $twig;
 
-    public function __construct(\Twig_Environment $engine)
+    public function __construct(\Twig_Environment $twig)
     {
-        $this->engine = $engine;
-        $this->loader = $this->engine->getLoader();
+        $this->twig = $twig;
+        $this->twigLoader = $this->twig->getLoader();
     }
 
     /**
-     * Render.
+     * Render the template.
      *
      * @param string $name
      * @param array  $params
@@ -41,7 +41,7 @@ class TwigRenderer implements TemplateRendererInterface
         $params = array_merge($this->attributes, $params);
         $name = $this->normalizeTemplate($name);
 
-        return $this->engine->render($name, $params);
+        return $this->twig->render($name, $params);
     }
 
     /**
@@ -50,7 +50,7 @@ class TwigRenderer implements TemplateRendererInterface
     public function addPath(string $path, string $namespace = null): void
     {
         $namespace = $namespace ?: $this->twigViewsNamespace;
-        $this->loader->addPath($path, $namespace);
+        $this->twigLoader->addPath($path, $namespace);
     }
 
     /**
@@ -61,9 +61,9 @@ class TwigRenderer implements TemplateRendererInterface
     public function getPaths(): array
     {
         $paths = [];
-        foreach ($this->loader->getNamespaces() as $namespace) {
+        foreach ($this->twigLoader->getNamespaces() as $namespace) {
             $name = ($namespace !== $this->twigViewsNamespace) ? $namespace : null;
-            foreach ($this->loader->getPaths($namespace) as $path) {
+            foreach ($this->twigLoader->getPaths($namespace) as $path) {
                 $paths[] = new TemplatePath($path, $name);
             }
         }
@@ -82,7 +82,7 @@ class TwigRenderer implements TemplateRendererInterface
     {
         $template = $this->normalizeTemplate($name);
 
-        return $this->loader->exists($template);
+        return $this->twigLoader->exists($template);
     }
 
     /**
@@ -105,6 +105,6 @@ class TwigRenderer implements TemplateRendererInterface
      */
     public function twig(): \Twig_Environment
     {
-        return $this->engine;
+        return $this->twig;
     }
 }

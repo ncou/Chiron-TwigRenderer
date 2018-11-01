@@ -4,7 +4,7 @@ namespace Chiron\Views\Provider;
 
 use Chiron\Views\TemplateRendererInterface;
 use Chiron\Views\TwigRenderer;
-use Chiron\Views\TwigRendererFactory;
+use Chiron\Views\TwigEnvironmentFactory;
 use Psr\Container\ContainerInterface;
 
 class TwigRendererServiceProvider
@@ -33,14 +33,16 @@ class TwigRendererServiceProvider
         }
 
         // *** factories ***
-        $container[TwigRendererFactory::class] = function ($c) {
-            return call_user_func(new TwigRendererFactory(), $c);
+        $container[TwigEnvironmentFactory::class] = function ($c) {
+            return call_user_func(new TwigEnvironmentFactory(), $c);
         };
 
         $container[TwigRenderer::class] = function ($c) {
-            $renderer = $c->get(TwigRendererFactory::class);
-
             $config = $c->get('templates');
+
+            $twig = $c->get(TwigEnvironmentFactory::class);
+
+            $renderer = new TwigRenderer($twig);
 
             // Add template file extension
             $renderer->setExtension($config['extension']);

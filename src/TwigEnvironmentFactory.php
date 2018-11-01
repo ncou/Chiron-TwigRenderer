@@ -10,7 +10,7 @@ use Psr\Container\ContainerInterface;
 //https://github.com/yiisoft/yii-twig/blob/master/src/ViewRenderer.php
 //https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L40
 
-class TwigRendererFactory
+class TwigEnvironmentFactory
 {
     /**
      * @var \Twig_Environment twig environment object that renders twig templates
@@ -87,7 +87,7 @@ class TwigRendererFactory
      */
     private $number = [];
 
-    public function __invoke(ContainerInterface $container): TwigRenderer
+    public function __invoke(ContainerInterface $container): \Twig_Environment
     {
         $config = $container->has('config') ? $container->get('config') : [];
         $config = isset($config['twig']) ? $config['twig'] : [];
@@ -154,7 +154,7 @@ class TwigRendererFactory
             $this->setLexer($this->lexer);
         }
 
-        return new TwigRenderer($this->twig);
+        return $this->twig;
     }
 
     private function setNumberFormat(int $decimals, string $point, string $thousands): void

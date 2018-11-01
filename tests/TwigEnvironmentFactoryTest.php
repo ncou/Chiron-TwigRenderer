@@ -8,11 +8,11 @@ use Chiron\Container\Container;
 use Chiron\Views\Tests\Fixtures\CustomExtension;
 use Chiron\Views\Tests\Fixtures\StaticAndConsts;
 use Chiron\Views\TwigRenderer;
-use Chiron\Views\TwigRendererFactory;
+use Chiron\Views\TwigEnvironmentFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 
-class TwigRendererFactoryTest extends TestCase
+class TwigEnvironmentFactoryTest extends TestCase
 {
     private function createRenderer(array $config = [], ContainerInterface $c = null): TwigRenderer
     {
@@ -22,7 +22,8 @@ class TwigRendererFactoryTest extends TestCase
 
         $c->set('config', $config);
 
-        $renderer = call_user_func(new TwigRendererFactory(), $c);
+        $twig = call_user_func(new TwigEnvironmentFactory(), $c);
+        $renderer = new TwigRenderer($twig);
 
         $renderer->setExtension('twig');
         $renderer->addPath(__DIR__ . '/Fixtures');
