@@ -81,6 +81,7 @@ class TwigEnvironmentFactory
      *            Example: `['timezone' => 'Europe/Paris', 'format' => 'F j, Y H:i', 'interfal_format' => '%d days']`
      */
     private $date = [];
+
     /**
      * @var array Settings to format the numbers.
      *            Example: `['decimals' => 2, 'decimal_point' => ',', 'thousands_separator' => ' ']`
