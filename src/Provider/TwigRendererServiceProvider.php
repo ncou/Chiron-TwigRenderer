@@ -10,7 +10,7 @@ use Psr\Container\ContainerInterface;
 class TwigRendererServiceProvider
 {
     /**
-     * You should have in your container the config informations using the following structure :.
+     * You should have in your container the config informations using the following structure.
      *
      * 'templates' => [
      *     'extension' => 'file extension used by templates; defaults to html',
@@ -24,7 +24,7 @@ class TwigRendererServiceProvider
      */
     public function register(ContainerInterface $container)
     {
-        // add default config settings if not already presents in the container
+        // add default config settings if not already presents in the container.
         if (! $container->has('templates')) {
             $container['templates'] = [
                 'extension' => 'html',
@@ -32,22 +32,20 @@ class TwigRendererServiceProvider
             ];
         }
 
-        // *** factories ***
+        // *** Factories ***
         $container[TwigEnvironmentFactory::class] = function ($c) {
             return call_user_func(new TwigEnvironmentFactory(), $c);
         };
 
         $container[TwigRenderer::class] = function ($c) {
-            $config = $c->get('templates');
-
+            // init the twig engine and instanciate the renderer using this engine.
             $twig = $c->get(TwigEnvironmentFactory::class);
-
             $renderer = new TwigRenderer($twig);
-
-            // Add template file extension
+            // grab the config settings in the container.
+            $config = $c->get('templates');
+            // Add template file extension.
             $renderer->setExtension($config['extension']);
-
-            // Add template paths
+            // Add template paths.
             //TODO : https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L144
             $allPaths = isset($config['paths']) && is_array($config['paths']) ? $config['paths'] : [];
             foreach ($allPaths as $namespace => $paths) {
@@ -60,7 +58,7 @@ class TwigRendererServiceProvider
             return $renderer;
         };
 
-        // *** alias ***
+        // *** Alias ***
         $container[TemplateRendererInterface::class] = function ($c) {
             return $c->get(TwigRenderer::class);
         };

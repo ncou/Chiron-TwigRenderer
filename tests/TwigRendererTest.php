@@ -45,7 +45,7 @@ class TwigRendererTest extends TestCase
         $this->assertEmpty($templatePath->getNamespace(), $message);
     }
 
-    public function testInstantiatingWithoutEngineLazyLoadsOne()
+    public function testConstructor()
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
