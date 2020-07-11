@@ -30,7 +30,7 @@
   },
   "extra": {
     "chiron": {
-        "providers": ["Chiron\\Views\\Provider\\TwigRendererServiceProvider"]
+        "providers_A_CORRIGER": ["Chiron\\Views\\Provider\\TwigRendererServiceProvider"]
     }
   }
 }
