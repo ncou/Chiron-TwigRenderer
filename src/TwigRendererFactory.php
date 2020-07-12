@@ -5,22 +5,32 @@ declare(strict_types=1);
 namespace Chiron\Views;
 
 use Psr\Container\ContainerInterface;
+use Chiron\Views\Config\TwigConfig;
+use Twig\Loader\FilesystemLoader;
+use Twig\Environment;
+use Twig\Extension\DebugExtension;
+use Twig\Extension\CoreExtension;
+use Twig\Extension\ExtensionInterface;
+use Twig\RuntimeLoader\RuntimeLoaderInterface;
+use Twig\Lexer;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
 
 //https://github.com/zendframework/zend-expressive-twigrenderer/blob/master/src/TwigEnvironmentFactory.php
 //https://github.com/yiisoft/yii-twig/blob/master/src/ViewRenderer.php
 //https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L40
 
-class TwigRendererFactory
+final class TwigRendererFactory
 {
     /**
-     * @var \Twig_Environment twig environment object that renders twig templates
+     * @var Environment twig environment object that renders twig templates
      */
     private $twig;
 
     /**
      * @var array Twig options.
      *
-     * @see http://twig.sensiolabs.org/doc/api.html#environment-options
+     * @see https://twig.symfony.com/doc/3.x/api.html#environment-options
      */
     private $options = [];
 
@@ -72,7 +82,7 @@ class TwigRendererFactory
      * ]
      * ```
      *
-     * @see http://twig.sensiolabs.org/doc/recipes.html#customizing-the-syntax
+     * @see https://twig.symfony.com/doc/3.x/recipes.html#customizing-the-syntax
      */
     private $lexer = [];
 
@@ -87,39 +97,38 @@ class TwigRendererFactory
      */
     private $number = [];
 
-    public function __invoke(ContainerInterface $container): TwigRenderer
+    //public function __invoke(ContainerInterface $container): TwigRenderer
+    public function __invoke(TwigConfig $config): TwigRenderer
     {
-        $config = $container->has('config') ? $container->get('config') : [];
-        $config = isset($config['twig']) ? $config['twig'] : [];
+        //$config = $container->get(TwigConfig::class);
 
-        // TODO : ne plus utiliser de variable privées de classe car cela ne sert à rien (sauf pour $this->twig). Pour l'instant on utilise ces constantes pour pouvoir mettre la documentation en début de classe !!!!
-        $this->runtimeLoaders = $config['runtime_loaders'] ?? [];
-        $this->options = $config['options'] ?? [];
-        $this->globals = $config['globals'] ?? [];
-        $this->functions = $config['functions'] ?? [];
-        $this->filters = $config['filters'] ?? [];
-        $this->extensions = $config['extensions'] ?? [];
-        $this->lexer = $config['lexer'] ?? [];
-        $this->date = $config['date'] ?? [];
-        $this->number = $config['number_format'] ?? [];
+        $this->runtimeLoaders = $config->getRuntimeLoaders();
+        $this->options = $config->getOptions();
+        $this->globals = $config->getGlobals();
+        $this->functions = $config->getFunctions();
+        $this->filters = $config->getFilters();
+        $this->extensions = $config->getExtensions();
+        $this->lexer = $config->getLexer();
+        $this->date = $config->getDate();
+        $this->number = $config->getNumberFormat();
 
-        $timezone = $this->date['timezone'] ?? null;
+        $timezone = $this->date['timezone'];
+        $format = $this->date['format'];
+        $interval = $this->date['interval_format'];
 
-        $format = $this->date['format'] ?? 'F j, Y H:i';
-        $interval = $this->date['interval_format'] ?? '%d days';
+        $decimals = $this->number['decimals'];
+        $point = $this->number['decimal_point'];
+        $thousands = $this->number['thousands_separator'];
 
-        $decimals = $this->number['decimals'] ?? 0;
-        $point = $this->number['decimal_point'] ?? '.';
-        $thousands = $this->number['thousands_separator'] ?? ',';
+        $debug = $this->options['debug'];
 
-        $debug = (bool) ($this->options['debug'] ?? false);
-
-        $loader = new \Twig_Loader_Filesystem();
-        $this->twig = new \Twig_Environment($loader, $this->options);
+        // initialize the twig engine.
+        $loader = new FilesystemLoader();
+        $this->twig = new Environment($loader, $this->options);
 
         // Add debug extension
         if ($debug) {
-            $this->twig->addExtension(new \Twig_Extension_Debug());
+            $this->twig->addExtension(new DebugExtension());
         }
         // Adjust the numbers format
         $this->setNumberFormat($decimals, $point, $thousands);
@@ -159,12 +168,12 @@ class TwigRendererFactory
 
     private function setNumberFormat(int $decimals, string $point, string $thousands): void
     {
-        $this->twig->getExtension(\Twig_Extension_Core::class)->setNumberFormat($decimals, $point, $thousands);
+        $this->twig->getExtension(CoreExtension::class)->setNumberFormat($decimals, $point, $thousands);
     }
 
     private function setDateFormat(string $format, string $interval): void
     {
-        $this->twig->getExtension(\Twig_Extension_Core::class)->setDateFormat($format, $interval);
+        $this->twig->getExtension(CoreExtension::class)->setDateFormat($format, $interval);
     }
 
     private function setTimezone(string $timezone): void
@@ -174,7 +183,7 @@ class TwigRendererFactory
         } catch (\Exception $e) {
             throw new \InvalidArgumentException(sprintf('Unknown or invalid timezone: "%s"', $timezone));
         }
-        $this->twig->getExtension(\Twig_Extension_Core::class)->setTimezone($timezone);
+        $this->twig->getExtension(CoreExtension::class)->setTimezone($timezone);
     }
 
     /**
@@ -247,7 +256,7 @@ class TwigRendererFactory
      */
     private function setLexer(array $options): void
     {
-        $lexer = new \Twig_Lexer($this->twig, $options);
+        $lexer = new Lexer($this->twig, $options);
         $this->twig->setLexer($lexer);
     }
 
@@ -261,7 +270,7 @@ class TwigRendererFactory
      */
     private function addCustom(string $classType, array $elements): void
     {
-        $classFunction = 'Twig_Simple' . $classType;
+        $classFunction = '\Twig\Twig' . $classType;
         foreach ($elements as $name => $func) {
             $twigElement = null;
             switch ($func) {
@@ -275,7 +284,7 @@ class TwigRendererFactory
                     $twigElement = new $classFunction($name, $func[0], (! empty($func[1]) && is_array($func[1])) ? $func[1] : []);
 
                     break;
-                case $func instanceof \Twig_SimpleFunction || $func instanceof \Twig_SimpleFilter:
+                case $func instanceof TwigFunction || $func instanceof TwigFilter:
                     $twigElement = $func;
 
                     break;
@@ -296,21 +305,22 @@ class TwigRendererFactory
      *
      * If the extension is not a TwigExtensionInterface, raises an exception.
      *
-     * @param string|\Twig_ExtensionInterface $extension
+     * @param string|ExtensionInterface $extension
      * @param ContainerInterface              $container
      *
-     * @throws \InvalidArgumentException if the extension provided or retrieved does not implement TwigExtensionInterface.
+     * @throws \InvalidArgumentException if the extension provided or retrieved does not implement ExtensionInterface.
      */
-    private function loadExtension($extension, ContainerInterface $container): \Twig_ExtensionInterface
+    private function loadExtension($extension, ContainerInterface $container): ExtensionInterface
     {
         // Load the extension from the container if present
         if (is_string($extension) && $container->has($extension)) {
             $extension = $container->get($extension);
         }
-        if (! $extension instanceof \Twig_ExtensionInterface) {
+
+        if (! $extension instanceof ExtensionInterface) {
             throw new \InvalidArgumentException(sprintf(
                 'Twig extension must be an instance of %s; "%s" given.',
-                \Twig_ExtensionInterface::class,
+                ExtensionInterface::class,
                 is_object($extension) ? get_class($extension) : gettype($extension)
             ));
         }
@@ -319,21 +329,22 @@ class TwigRendererFactory
     }
 
     /**
-     * @param string|\Twig_RuntimeLoaderInterface $runtimeLoader
+     * @param string|RuntimeLoaderInterface $runtimeLoader
      * @param ContainerInterface                  $container
      *
-     * @throws \InvalidArgumentException if a given $runtimeLoader or the service it represents is not a TwigRuntimeLoaderInterface instance.
+     * @throws \InvalidArgumentException if a given $runtimeLoader or the service it represents is not a RuntimeLoaderInterface instance.
      */
-    private function loadRuntimeLoader($runtimeLoader, ContainerInterface $container): \Twig_RuntimeLoaderInterface
+    private function loadRuntimeLoader($runtimeLoader, ContainerInterface $container): RuntimeLoaderInterface
     {
         // Load the runtime loader from the container
         if (is_string($runtimeLoader) && $container->has($runtimeLoader)) {
             $runtimeLoader = $container->get($runtimeLoader);
         }
-        if (! $runtimeLoader instanceof \Twig_RuntimeLoaderInterface) {
+
+        if (! $runtimeLoader instanceof RuntimeLoaderInterface) {
             throw new \InvalidArgumentException(sprintf(
                 'Twig runtime loader must be an instance of %s; "%s" given.',
-                \Twig_RuntimeLoaderInterface::class,
+                RuntimeLoaderInterface::class,
                 is_object($runtimeLoader) ? get_class($runtimeLoader) : gettype($runtimeLoader)
             ));
         }

@@ -8,6 +8,9 @@ use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
 
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+
 class TwigRendererTest extends TestCase
 {
     /**
@@ -17,7 +20,7 @@ class TwigRendererTest extends TestCase
 
     protected function setUp()
     {
-        $this->twigEnvironment = new \Twig_Environment(new \Twig_Loader_Filesystem());
+        $this->twigEnvironment = new Environment(new FilesystemLoader());
     }
 
     public function assertTemplatePath($path, TemplatePath $templatePath, $message = null)
@@ -80,7 +83,7 @@ class TwigRendererTest extends TestCase
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/Fixtures');
-        $result = $renderer->render('testTemplate.html', ['hello' => 'Hi']);
+        $result = $renderer->render('testTemplate.twig', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);
     }
 
@@ -88,7 +91,7 @@ class TwigRendererTest extends TestCase
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/Fixtures');
-        $result = $renderer->exists('testTemplate.html');
+        $result = $renderer->exists('testTemplate.twig');
         $this->assertTrue($result);
     }
 

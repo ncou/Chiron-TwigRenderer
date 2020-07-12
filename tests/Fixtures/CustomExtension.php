@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Tests\Fixtures;
 
-class CustomExtension extends \Twig_Extension
+use Twig\Extension\AbstractExtension;
+
+final class CustomExtension extends AbstractExtension
 {
     public function getFilters()
     {

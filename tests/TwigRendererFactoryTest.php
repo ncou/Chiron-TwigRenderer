@@ -7,25 +7,26 @@ namespace Chiron\Views\Tests;
 use Chiron\Container\Container;
 use Chiron\Views\Tests\Fixtures\CustomExtension;
 use Chiron\Views\Tests\Fixtures\StaticAndConsts;
-use Chiron\Views\TwigEnvironmentFactory;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
-use Psr\Container\ContainerInterface;
 
-class TwigEnvironmentFactoryTest extends TestCase
+use Chiron\Views\Config\TwigConfig;
+use Chiron\Views\TwigRendererFactory;
+
+use Twig\Extension\CoreExtension;
+use Twig\RuntimeLoader\ContainerRuntimeLoader;
+use Twig\Environment;
+use Twig\TwigFilter;
+use Twig\TwigFunction;
+
+class TwigRendererFactoryTest extends TestCase
 {
-    private function createRenderer(array $config = [], ContainerInterface $c = null): TwigRenderer
+    private function createRenderer(array $data = []): TwigRenderer
     {
-        if ($c === null) {
-            $c = new Container();
-        }
+        $config = new TwigConfig($data);
 
-        $c->set('config', $config);
+        $renderer = call_user_func(new TwigRendererFactory(), $config);
 
-        $twig = call_user_func(new TwigEnvironmentFactory(), $c);
-        $renderer = new TwigRenderer($twig);
-
-        $renderer->setExtension('twig');
         $renderer->addPath(__DIR__ . '/Fixtures');
 
         return $renderer;
@@ -37,12 +38,12 @@ class TwigEnvironmentFactoryTest extends TestCase
         $this->assertInstanceOf(TwigRenderer::class, $renderer);
 
         $twig = $renderer->twig();
-        $this->assertInstanceOf(\Twig_Environment::class, $twig);
+        $this->assertInstanceOf(Environment::class, $twig);
     }
 
     public function testStaticAndConsts()
     {
-        $config['twig']['globals']['staticClass'] = ['class' => StaticAndConsts::class];
+        $config['globals']['staticClass'] = ['class' => StaticAndConsts::class];
 
         $renderer = $this->createRenderer($config);
 
@@ -54,7 +55,7 @@ class TwigEnvironmentFactoryTest extends TestCase
 
     public function testDebug()
     {
-        $config['twig']['options']['debug'] = true;
+        $config['options']['debug'] = true;
 
         $renderer = $this->createRenderer($config);
 
@@ -64,26 +65,26 @@ class TwigEnvironmentFactoryTest extends TestCase
 
     public function testTimezoneDefined()
     {
-        $config['twig']['date']['timezone'] = 'Europe/Paris';
+        $config['date']['timezone'] = 'Europe/Paris';
 
         date_default_timezone_set('UTC');
         $renderer = $this->createRenderer($config);
 
         $twig = $renderer->twig();
-        $timezone = $twig->getExtension(\Twig_Extension_Core::class)->getTimezone();
+        $timezone = $twig->getExtension(CoreExtension::class)->getTimezone();
 
         $this->assertEquals('Europe/Paris', $timezone->getName());
     }
 
     public function testTimezoneNotDefined()
     {
-        $config['twig']['date']['timezone'] = null;
+        $config['date']['timezone'] = null;
 
         date_default_timezone_set('UTC');
         $renderer = $this->createRenderer($config);
 
         $twig = $renderer->twig();
-        $timezone = $twig->getExtension(\Twig_Extension_Core::class)->getTimezone();
+        $timezone = $twig->getExtension(CoreExtension::class)->getTimezone();
 
         $this->assertEquals('UTC', $timezone->getName());
     }
@@ -93,20 +94,20 @@ class TwigEnvironmentFactoryTest extends TestCase
      */
     public function testTimezoneInvalidFormat()
     {
-        $config['twig']['date']['timezone'] = 'Foobar';
+        $config['date']['timezone'] = 'Foobar';
 
         $renderer = $this->createRenderer($config);
     }
 
     public function testDateFormat()
     {
-        $config['twig']['date']['format'] = 'Foo';
-        $config['twig']['date']['interval_format'] = 'Bar';
+        $config['date']['format'] = 'Foo';
+        $config['date']['interval_format'] = 'Bar';
 
         $renderer = $this->createRenderer($config);
 
         $twig = $renderer->twig();
-        $dateFormats = $twig->getExtension(\Twig_Extension_Core::class)->getDateFormat();
+        $dateFormats = $twig->getExtension(CoreExtension::class)->getDateFormat();
 
         $this->assertEquals('Foo', $dateFormats[0]);
         $this->assertEquals('Bar', $dateFormats[1]);
@@ -114,26 +115,26 @@ class TwigEnvironmentFactoryTest extends TestCase
 
     public function testNumberFormat()
     {
-        $config['twig']['number_format']['decimals'] = 10;
-        $config['twig']['number_format']['decimal_point'] = 'Foo';
-        $config['twig']['number_format']['thousands_separator'] = 'Bar';
+        $config['number_format']['decimals'] = 10;
+        $config['number_format']['decimal_point'] = 'Foo';
+        $config['number_format']['thousands_separator'] = 'Bar';
 
         $renderer = $this->createRenderer($config);
 
         $twig = $renderer->twig();
-        $numberFormats = $twig->getExtension(\Twig_Extension_Core::class)->getNumberFormat();
+        $numberFormats = $twig->getExtension(CoreExtension::class)->getNumberFormat();
 
         $this->assertEquals(10, $numberFormats[0]);
         $this->assertEquals('Foo', $numberFormats[1]);
         $this->assertEquals('Bar', $numberFormats[2]);
     }
 
-    public function testSimpleFunctions()
+    public function testFunctions()
     {
-        $config['twig']['functions'] = [
+        $config['functions'] = [
             'json_encode' => '\Chiron\Views\Tests\Fixtures\JsonHelper::encode',
-            new \Twig_SimpleFunction('rot13', 'str_rot13'),
-            new \Twig_SimpleFunction('add_*', function ($symbols, $val) {
+            new TwigFunction('rot13', 'str_rot13'),
+            new TwigFunction('add_*', function ($symbols, $val) {
                 return $val . $symbols;
             }, ['is_safe' => ['html']]),
             'callable_rot13' => function ($string) {
@@ -149,27 +150,27 @@ class TwigEnvironmentFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('simpleFunctions1.twig');
+        $content = $renderer->render('functions1.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('simpleFunctions2.twig');
+        $content = $renderer->render('functions2.twig');
         $this->assertEquals($content, 'val43');
-        $content = $renderer->render('simpleFunctions3.twig');
+        $content = $renderer->render('functions3.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('simpleFunctions4.twig');
+        $content = $renderer->render('functions4.twig');
         $this->assertEquals($content, 'val43');
-        $content = $renderer->render('simpleFunctions5.twig');
+        $content = $renderer->render('functions5.twig');
         $this->assertEquals($content, '6');
-        $content = $renderer->render('simpleFunctions6.twig');
+        $content = $renderer->render('functions6.twig');
         $this->assertContains('echo', $content);
         $this->assertContains('variable', $content);
     }
 
-    public function testSimpleFilters()
+    public function testFilters()
     {
-        $config['twig']['filters'] = [
+        $config['filters'] = [
             'string_rot13' => 'str_rot13',
-            new \Twig_SimpleFilter('rot13', 'str_rot13'),
-            new \Twig_SimpleFilter('add_*', function ($symbols, $val) {
+            new TwigFilter('rot13', 'str_rot13'),
+            new TwigFilter('add_*', function ($symbols, $val) {
                 return $val . $symbols;
             }, ['is_safe' => ['html']]),
             'callable_rot13' => function ($string) {
@@ -182,21 +183,21 @@ class TwigEnvironmentFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('simpleFilters1.twig');
+        $content = $renderer->render('filters1.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('simpleFilters2.twig');
+        $content = $renderer->render('filters2.twig');
         $this->assertEquals($content, 'val42');
-        $content = $renderer->render('simpleFilters3.twig');
+        $content = $renderer->render('filters3.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('simpleFilters4.twig');
+        $content = $renderer->render('filters4.twig');
         $this->assertEquals($content, 'val42');
-        $content = $renderer->render('simpleFilters5.twig');
+        $content = $renderer->render('filters5.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
     public function testExtension()
     {
-        $config['twig']['extensions'] = [
+        $config['extensions'] = [
             new CustomExtension(),
         ];
 
@@ -211,7 +212,7 @@ class TwigEnvironmentFactoryTest extends TestCase
         $c = new Container();
         $c->set(CustomExtension::class, new CustomExtension());
 
-        $config['twig']['extensions'] = [
+        $config['extensions'] = [
             CustomExtension::class,
         ];
 
@@ -227,7 +228,7 @@ class TwigEnvironmentFactoryTest extends TestCase
      */
     public function testExtensionNotDefinedInContainer()
     {
-        $config['twig']['extensions'] = [
+        $config['extensions'] = [
             CustomExtension::class,
         ];
 
@@ -237,8 +238,8 @@ class TwigEnvironmentFactoryTest extends TestCase
     public function testRuntimeLoader()
     {
         $c = new Container();
-        $config['twig']['runtime_loaders'] = [
-            new \Twig_ContainerRuntimeLoader($c),
+        $config['runtime_loaders'] = [
+            new ContainerRuntimeLoader($c),
         ];
 
         $renderer = $this->createRenderer($config);
@@ -249,9 +250,9 @@ class TwigEnvironmentFactoryTest extends TestCase
     public function testRuntimeLoaderDefinedInContainer()
     {
         $c = new Container();
-        $c->set('RuntimeLoader', new \Twig_ContainerRuntimeLoader($c));
+        $c->set('RuntimeLoader', new ContainerRuntimeLoader($c));
 
-        $config['twig']['runtime_loaders'] = [
+        $config['runtime_loaders'] = [
             'RuntimeLoader',
         ];
 
@@ -266,7 +267,7 @@ class TwigEnvironmentFactoryTest extends TestCase
      */
     public function testRuntimeLoaderNotDefinedInContainer()
     {
-        $config['twig']['runtime_loaders'] = [
+        $config['runtime_loaders'] = [
             'RuntimeLoader',
         ];
 
@@ -275,7 +276,7 @@ class TwigEnvironmentFactoryTest extends TestCase
 
     public function testLexerOptions()
     {
-        $config['twig']['lexer'] = [
+        $config['lexer'] = [
             'tag_comment' => ['{*', '*}'],
         ];
 

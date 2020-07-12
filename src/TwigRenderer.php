@@ -4,27 +4,32 @@ declare(strict_types=1);
 
 namespace Chiron\Views;
 
-class TwigRenderer implements TemplateRendererInterface
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+
+final class TwigRenderer implements TemplateRendererInterface
 {
     use AttributesTrait;
     use ExtensionTrait;
 
+    private $extension = 'twig';
+
     /**
      * @var string twig namespace to use in templates
      */
-    public $twigViewsNamespace = \Twig_Loader_Filesystem::MAIN_NAMESPACE;
+    public $twigViewsNamespace = FilesystemLoader::MAIN_NAMESPACE;
 
     /**
-     * @var \Twig_Loader_Filesystem
+     * @var FilesystemLoader
      */
     private $twigLoader;
 
     /**
-     * @var \Twig_Environment
+     * @var Environment
      */
     private $twig;
 
-    public function __construct(\Twig_Environment $twig)
+    public function __construct(Environment $twig)
     {
         $this->twig = $twig;
         $this->twigLoader = $this->twig->getLoader();
@@ -103,7 +108,7 @@ class TwigRenderer implements TemplateRendererInterface
     /**
      * Return the Twig Engine.
      */
-    public function twig(): \Twig_Environment
+    public function twig(): Environment
     {
         return $this->twig;
     }

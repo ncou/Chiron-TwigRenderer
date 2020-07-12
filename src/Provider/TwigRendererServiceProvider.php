@@ -4,63 +4,17 @@ namespace Chiron\Views\Provider;
 
 use Chiron\Views\TemplateRendererInterface;
 use Chiron\Views\TwigEnvironmentFactory;
+use Chiron\Views\TwigRendererFactory;
 use Chiron\Views\TwigRenderer;
 use Psr\Container\ContainerInterface;
 
-class TwigRendererServiceProvider
+use Chiron\Bootload\ServiceProvider\ServiceProviderInterface;
+use Chiron\Container\BindingInterface;
+
+class TwigRendererServiceProvider implements ServiceProviderInterface
 {
-    /**
-     * You should have in your container the config informations using the following structure.
-     *
-     * 'templates' => [
-     *     'extension' => 'file extension used by templates; defaults to html',
-     *     'paths' => [
-     *         // namespace / path pairs
-     *         //
-     *         // Numeric namespaces imply the default/main namespace. Paths may be
-     *         // strings or arrays of string paths to associate with the namespace.
-     *     ],
-     * ],
-     */
-    public function register(ContainerInterface $container)
+    public function register(BindingInterface $container): void
     {
-        // add default config settings if not already presents in the container.
-        if (! $container->has('templates')) {
-            $container['templates'] = [
-                'extension' => 'html',
-                'paths'     => [],
-            ];
-        }
-
-        // *** Factories ***
-        $container[TwigEnvironmentFactory::class] = function ($c) {
-            return call_user_func(new TwigEnvironmentFactory(), $c);
-        };
-
-        $container[TwigRenderer::class] = function ($c) {
-            // init the twig engine and instanciate the renderer using this engine.
-            $twig = $c->get(TwigEnvironmentFactory::class);
-            $renderer = new TwigRenderer($twig);
-            // grab the config settings in the container.
-            $config = $c->get('templates');
-            // Add template file extension.
-            $renderer->setExtension($config['extension']);
-            // Add template paths.
-            //TODO : https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L144
-            $allPaths = isset($config['paths']) && is_array($config['paths']) ? $config['paths'] : [];
-            foreach ($allPaths as $namespace => $paths) {
-                $namespace = is_numeric($namespace) ? null : $namespace;
-                foreach ((array) $paths as $path) {
-                    $renderer->addPath($path, $namespace);
-                }
-            }
-
-            return $renderer;
-        };
-
-        // *** Alias ***
-        $container[TemplateRendererInterface::class] = function ($c) {
-            return $c->get(TwigRenderer::class);
-        };
+        $container->singleton(TemplateRendererInterface::class, new TwigRendererFactory());
     }
 }
