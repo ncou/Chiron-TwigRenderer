@@ -4,15 +4,18 @@ declare(strict_types=1);
 
 namespace Chiron\Views;
 
+//https://github.com/mezzio/mezzio-twigrenderer/blob/master/src/TwigRenderer.php
+
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
 final class TwigRenderer implements TemplateRendererInterface
 {
+    // TODO : créer une classe abstraite pour les renderer plutot que d'utiliser des trait ????
     use AttributesTrait;
     use ExtensionTrait;
 
-    private $extension = 'twig';
+    private $extension = 'html.twig';
 
     /**
      * @var string twig namespace to use in templates
@@ -20,8 +23,9 @@ final class TwigRenderer implements TemplateRendererInterface
     public $twigViewsNamespace = FilesystemLoader::MAIN_NAMESPACE;
 
     /**
-     * @var FilesystemLoader
+     * @var FilesystemLoader // TODO : c'est faux c'est plutot un LoaderInterface car on ne sait pas si l'utilisateur a bien créée un objet FilesystemLoader
      */
+    // TODO : renommer en Loader !!!!
     private $twigLoader;
 
     /**
@@ -52,8 +56,9 @@ final class TwigRenderer implements TemplateRendererInterface
     /**
      * Add a path for template.
      */
-    public function addPath(string $path, string $namespace = null): void
+    public function addPath(string $path, ?string $namespace = null): void
     {
+        // TODO : il faudrait pas utiliser le signe "??" au lieu de "?:" ????
         $namespace = $namespace ?: $this->twigViewsNamespace;
         $this->twigLoader->addPath($path, $namespace);
     }
@@ -66,7 +71,9 @@ final class TwigRenderer implements TemplateRendererInterface
     public function getPaths(): array
     {
         $paths = [];
+        // TODO : attention ca va merder si l'utilisateur n'a pas défini le loader comme étant un objet de type FilesystemLoader, par exemple si il a redéfini le loader via la méthode ->twig() pour le transformer en pbjet ArrayLoader par exemple !!!!
         foreach ($this->twigLoader->getNamespaces() as $namespace) {
+            // TODO : utiliser une constante pour "null" dans le cas ou on n'a pas utilisé de namespace !!!!!
             $name = ($namespace !== $this->twigViewsNamespace) ? $namespace : null;
             foreach ($this->twigLoader->getPaths($namespace) as $path) {
                 $paths[] = new TemplatePath($path, $name);

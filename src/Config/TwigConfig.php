@@ -8,6 +8,7 @@ use Nette\Schema\Expect;
 use Nette\Schema\Schema;
 use Chiron\Config\AbstractInjectableConfig;
 use Chiron\Config\InjectableInterface;
+use Twig\Cache\CacheInterface;
 
 class TwigConfig extends AbstractInjectableConfig
 {
@@ -15,23 +16,23 @@ class TwigConfig extends AbstractInjectableConfig
 
     protected function getConfigSchema(): Schema
     {
-        // TODO : améliorer le typage des tableaux exemple : Expect::arrayOf('string')
+        // TODO : améliorer le typage des tableaux exemple : Expect::arrayOf(Expect::string(), Expect::type(CacheInterface::class))
         return Expect::structure([
             // general options settings
             'options' => Expect::structure([
-                'debug' => Expect::bool()->default('false'),
-                'charset' => Expect::string()->default('UTF-8'),
+                'debug' => Expect::bool()->default(setting('debug')),
+                'charset' => Expect::string()->default(setting('charset')),
                 'strict_variables' => Expect::bool()->default(false),
-                'autoescape' => Expect::string()->default('html'),
-                'cache' => Expect::bool()->default(false),
-                'auto_reload' => Expect::bool()->nullable()->default(null),
+                'autoescape' => Expect::anyOf(Expect::bool(), Expect::string(), Expect::callable())->default('name'),
+                'cache' => Expect::anyOf(Expect::bool(), Expect::string(), Expect::interface(CacheInterface::class))->default(directory('@cache/twig/')),
+                'auto_reload' => Expect::bool()->default(setting('debug')),
                 'optimizations' => Expect::anyOf(-1, 0)->default(-1),
             ])->castTo('array'),
             // date settings
             'date' => Expect::structure([
-                'timezone' => Expect::string()->nullable()->default(null),
                 'format' => Expect::string()->default('F j, Y H:i'),
                 'interval_format' => Expect::string()->default('%d days'),
+                'timezone' => Expect::string()->default(setting('timezone')),
             ])->castTo('array'),
             // number settings
             'number_format' => Expect::structure([
@@ -40,7 +41,7 @@ class TwigConfig extends AbstractInjectableConfig
                 'thousands_separator' => Expect::string()->default(','),
             ])->castTo('array'),
             // generic parameters
-            'runtime_loaders' => Expect::array(),
+            'runtime_loaders' => Expect::array(), // TODO : virer la partie runtimeLoaders !!!!!
             'globals' => Expect::array(),
             'functions' => Expect::array(),
             'filters' => Expect::array(),

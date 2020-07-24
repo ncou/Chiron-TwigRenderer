@@ -3,7 +3,6 @@
 namespace Chiron\Views\Provider;
 
 use Chiron\Views\TemplateRendererInterface;
-use Chiron\Views\TwigEnvironmentFactory;
 use Chiron\Views\TwigRendererFactory;
 use Chiron\Views\TwigRenderer;
 use Psr\Container\ContainerInterface;
@@ -11,7 +10,7 @@ use Psr\Container\ContainerInterface;
 use Chiron\Bootload\ServiceProvider\ServiceProviderInterface;
 use Chiron\Container\BindingInterface;
 
-class TwigRendererServiceProvider implements ServiceProviderInterface
+final class TwigRendererServiceProvider implements ServiceProviderInterface
 {
     public function register(BindingInterface $container): void
     {

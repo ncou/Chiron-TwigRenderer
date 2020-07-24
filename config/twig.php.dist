@@ -1,19 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'options' => [
-        'debug' => false,
-        'charset' => 'UTF-8',
+        'debug' => setting('debug'),
+        'charset' => setting('charset'),
         'strict_variables' => false,
-        'autoescape' => 'html',
-        'cache' => false,
-        'auto_reload' => null,
+        'autoescape' => 'name',
+        'cache' => directory('@cache/twig/'),
+        'auto_reload' => setting('debug'),
         'optimizations' => -1,
     ],
     'date' => [
-        'timezone' => null,
         'format' => 'F j, Y H:i',
         'interval_format' => '%d days',
+        'timezone' => setting('timezone'),
     ],
     'number_format' => [
         'decimals' => 0,

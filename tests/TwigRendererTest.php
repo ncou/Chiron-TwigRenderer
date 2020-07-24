@@ -83,7 +83,7 @@ class TwigRendererTest extends TestCase
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/Fixtures');
-        $result = $renderer->render('testTemplate.twig', ['hello' => 'Hi']);
+        $result = $renderer->render('testTemplate.html.twig', ['hello' => 'Hi']);
         $this->assertEquals('Hi', $result);
     }
 
@@ -91,7 +91,7 @@ class TwigRendererTest extends TestCase
     {
         $renderer = new TwigRenderer($this->twigEnvironment);
         $renderer->addPath(__DIR__ . '/Fixtures');
-        $result = $renderer->exists('testTemplate.twig');
+        $result = $renderer->exists('testTemplate.html.twig');
         $this->assertTrue($result);
     }
 

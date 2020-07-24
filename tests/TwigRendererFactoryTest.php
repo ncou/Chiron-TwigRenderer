@@ -47,7 +47,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('staticAndConsts.twig');
+        $content = $renderer->render('staticAndConsts.html.twig');
         $this->assertContains('I am a const!', $content);
         $this->assertContains('I am a static var!', $content);
         $this->assertContains('I am a static function with param pam-param!', $content);
@@ -59,7 +59,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('debug.twig', ['foo' => 'bar']);
+        $content = $renderer->render('debug.html.twig', ['foo' => 'bar']);
         $this->assertContains('string(3) "bar"', $content);
     }
 
@@ -74,19 +74,6 @@ class TwigRendererFactoryTest extends TestCase
         $timezone = $twig->getExtension(CoreExtension::class)->getTimezone();
 
         $this->assertEquals('Europe/Paris', $timezone->getName());
-    }
-
-    public function testTimezoneNotDefined()
-    {
-        $config['date']['timezone'] = null;
-
-        date_default_timezone_set('UTC');
-        $renderer = $this->createRenderer($config);
-
-        $twig = $renderer->twig();
-        $timezone = $twig->getExtension(CoreExtension::class)->getTimezone();
-
-        $this->assertEquals('UTC', $timezone->getName());
     }
 
     /**
@@ -150,17 +137,17 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('functions1.twig');
+        $content = $renderer->render('functions1.html.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('functions2.twig');
+        $content = $renderer->render('functions2.html.twig');
         $this->assertEquals($content, 'val43');
-        $content = $renderer->render('functions3.twig');
+        $content = $renderer->render('functions3.html.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('functions4.twig');
+        $content = $renderer->render('functions4.html.twig');
         $this->assertEquals($content, 'val43');
-        $content = $renderer->render('functions5.twig');
+        $content = $renderer->render('functions5.html.twig');
         $this->assertEquals($content, '6');
-        $content = $renderer->render('functions6.twig');
+        $content = $renderer->render('functions6.html.twig');
         $this->assertContains('echo', $content);
         $this->assertContains('variable', $content);
     }
@@ -183,15 +170,15 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('filters1.twig');
+        $content = $renderer->render('filters1.html.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('filters2.twig');
+        $content = $renderer->render('filters2.html.twig');
         $this->assertEquals($content, 'val42');
-        $content = $renderer->render('filters3.twig');
+        $content = $renderer->render('filters3.html.twig');
         $this->assertEquals($content, 'Sbbone');
-        $content = $renderer->render('filters4.twig');
+        $content = $renderer->render('filters4.html.twig');
         $this->assertEquals($content, 'val42');
-        $content = $renderer->render('filters5.twig');
+        $content = $renderer->render('filters5.html.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
@@ -203,7 +190,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('extension.twig');
+        $content = $renderer->render('extension.html.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
@@ -218,7 +205,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config, $c);
 
-        $content = $renderer->render('extension.twig');
+        $content = $renderer->render('extension.html.twig');
         $this->assertEquals($content, 'Sbbone');
     }
 
@@ -282,7 +269,7 @@ class TwigRendererFactoryTest extends TestCase
 
         $renderer = $this->createRenderer($config);
 
-        $content = $renderer->render('lexer.twig');
+        $content = $renderer->render('lexer.html.twig');
 
         $this->assertFalse(strpos($content, 'CUSTOM_LEXER_TWIG_COMMENT'), 'Custom comment lexerOptions were not applied: ' . $content);
         $this->assertTrue(strpos($content, 'DEFAULT_TWIG_COMMENT') !== false, 'Default comment style was not modified via lexerOptions:' . $content);

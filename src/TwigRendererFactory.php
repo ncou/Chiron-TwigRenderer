@@ -16,6 +16,10 @@ use Twig\Lexer;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
 
+// DOCUMENTATION
+//https://symfony.com/doc/current/reference/configuration/twig.html
+//https://github.com/symfony/symfony-docs/blob/79f046540d414fb449caadd9adb56b6c94cabc14/reference/configuration/twig.rst
+
 //https://github.com/zendframework/zend-expressive-twigrenderer/blob/master/src/TwigEnvironmentFactory.php
 //https://github.com/yiisoft/yii-twig/blob/master/src/ViewRenderer.php
 //https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L40
@@ -98,6 +102,7 @@ final class TwigRendererFactory
     private $number = [];
 
     //public function __invoke(ContainerInterface $container): TwigRenderer
+    // TODO : lui passer le viewConfig pour alimenter les paths ??? mais dans ce cas la classe ViewBootLoader ne servira plus à rien !!!!
     public function __invoke(TwigConfig $config): TwigRenderer
     {
         //$config = $container->get(TwigConfig::class);
@@ -112,9 +117,9 @@ final class TwigRendererFactory
         $this->date = $config->getDate();
         $this->number = $config->getNumberFormat();
 
-        $timezone = $this->date['timezone'];
         $format = $this->date['format'];
         $interval = $this->date['interval_format'];
+        $timezone = $this->date['timezone'];
 
         $decimals = $this->number['decimals'];
         $point = $this->number['decimal_point'];
@@ -123,6 +128,8 @@ final class TwigRendererFactory
         $debug = $this->options['debug'];
 
         // initialize the twig engine.
+        // TODO : lui passer un tableau vide de paths + le rootPath =>     $loader = new FilesystemLoader([], directory('@root'));
+        // TODO : mettre ces deux ligne dans un méthode privée "createTwig()" ou alors juste la premiére ligne avec un createLoader() qui retourne un Filesystemloader
         $loader = new FilesystemLoader();
         $this->twig = new Environment($loader, $this->options);
 
@@ -138,7 +145,7 @@ final class TwigRendererFactory
         if (isset($timezone)) {
             $this->setTimezone($timezone);
         }
-        // Adding custom globals (objects or static classes)
+        // Adding runtime loaders
         if (! empty($this->runtimeLoaders)) {
             $this->addRuntimeLoaders($this->runtimeLoaders, $container);
         }
@@ -191,6 +198,7 @@ final class TwigRendererFactory
      *
      * @param array $globals @see self::$globals
      */
+    // TODO : virer les balises @see ????
     private function addGlobals(array $globals): void
     {
         foreach ($globals as $name => $value) {
@@ -206,6 +214,7 @@ final class TwigRendererFactory
      *
      * @param array $functions @see self::$functions
      */
+    // TODO : virer les balises @see ????
     private function addFunctions(array $functions): void
     {
         $this->addCustom('Function', $functions);
@@ -216,6 +225,7 @@ final class TwigRendererFactory
      *
      * @param array $filters @see self::$filters
      */
+    // TODO : virer les balises @see ????
     private function addFilters(array $filters): void
     {
         $this->addCustom('Filter', $filters);
@@ -227,6 +237,7 @@ final class TwigRendererFactory
      * @param array              $extensions @see self::$extensions
      * @param ContainerInterface $container
      */
+    // TODO : virer les balises @see ????
     private function addExtensions(array $extensions, ContainerInterface $container): void
     {
         foreach ($extensions as $extName) {
@@ -241,6 +252,7 @@ final class TwigRendererFactory
      * @param array              $runtimeLoaders @see self::$runtimeLoaders
      * @param ContainerInterface $container
      */
+    // TODO : virer les balises @see ????
     private function addRuntimeLoaders(array $runtimeLoaders, ContainerInterface $container): void
     {
         foreach ($runtimeLoaders as $loaderName) {
@@ -254,6 +266,7 @@ final class TwigRendererFactory
      *
      * @param array $options @see self::$lexer
      */
+    // TODO : virer les balises @see ????
     private function setLexer(array $options): void
     {
         $lexer = new Lexer($this->twig, $options);
