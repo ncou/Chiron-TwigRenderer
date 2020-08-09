@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Chiron\Views\Command\Tests;
+namespace Chiron\Views\Tests\Command;
 
 use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
@@ -30,6 +30,8 @@ use Chiron\Views\Config\TwigConfig;
 
 class TwigCompileCommandTest extends TestCase
 {
+    private $container;
+
     public function testCompileCorrectFile()
     {
         $tester = $this->createCommandTester(__DIR__.'/Fixtures/correct/');
@@ -48,6 +50,22 @@ class TwigCompileCommandTest extends TestCase
 
         $this->assertEquals(1, $ret, 'Returns 1 in case of error');
         $this->assertStringContainsString('0 Twig files have valid syntax and 1 contain errors.', trim($tester->getDisplay()));
+    }
+
+    public function testCompileIncorrectSyntaxInternalToTwig()
+    {
+        $tester = $this->createCommandTester(__DIR__.'/Fixtures/internal/');
+
+        // This piece of code will provoke an internal error during the compilation (because escape value can't be true)
+        $template = $this->container->get(TemplateRendererInterface::class);
+        $twig = $template->twig();
+        $twig->getExtension(\Twig\Extension\EscaperExtension::class)->setDefaultStrategy(true);
+
+        $ret = $tester->execute([], ['decorated' => false]);
+
+        $this->assertEquals(1, $ret, 'Returns 1 in case of error');
+        $this->assertStringContainsString('0 Twig files have valid syntax and 1 contain errors.', trim($tester->getDisplay()));
+        $this->assertStringContainsString('SYNTAX ERROR', trim($tester->getDisplay()));
     }
 
     public function testCompileFileCompileTimeException()
@@ -107,15 +125,15 @@ class TwigCompileCommandTest extends TestCase
 
     private function createCommandTester(string $path, ?string $namespace = null, array $lexer = []): CommandTester
     {
-        $container = $this->initContainer();
+        $this->container = $this->initContainer();
 
         $factory = new TwigRendererFactory();
         $renderer = $factory(new TwigConfig(['lexer' => $lexer]));
         $renderer->addPath($path, $namespace);
 
-        $container->singleton(TemplateRendererInterface::class, $renderer);
+        $this->container->singleton(TemplateRendererInterface::class, $renderer);
 
-        $commandLoader = new CommandLoader($container);
+        $commandLoader = new CommandLoader($this->container);
 
         $console = new Console($commandLoader);
 

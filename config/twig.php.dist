@@ -22,10 +22,10 @@ return [
         'decimal_point' => '.',
         'thousands_separator' => ',',
     ],
-    'runtime_loaders' => [],
+    'lexer' => [],
+    'facades' => [],
     'globals' => [],
+    'extensions' => [],
     'functions' => [],
     'filters' => [],
-    'extensions' => [],
-    'lexer' => [],
 ];

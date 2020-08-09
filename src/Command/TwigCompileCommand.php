@@ -30,6 +30,15 @@ use Chiron\Views\TemplateRendererInterface;
 
 //https://github.com/narrowspark/framework/blob/2a3536b821e685a3c7aa09f9a9b6eec9d873004f/src/Viserio/Bridge/Twig/Tests/Command/LintCommandTest.php
 //https://github.com/narrowspark/framework/blob/81f39d7371715ee20aa888a8934c36c536e3d69e/src/Viserio/Provider/Twig/Tests/Command/LintCommandTest.php
+
+/**
+ * Console command to check the syntax of Twig templates.
+ *
+ * Adapted from the Symfony TwigBundle:
+ * @see https://github.com/symfony/TwigBundle/blob/master/Command/LintCommand.php
+ *
+ * @author Fabien Potencier <fabien@symfony.com>
+ */
 final class TwigCompileCommand extends AbstractCommand
 {
     /** @var \Twig\Environment */
@@ -53,6 +62,7 @@ final class TwigCompileCommand extends AbstractCommand
                 foreach ($filesystem->find($path, $extension) as $file) {
                     $template = '@'.$namespace.'/'.$file->getBasename();
                     $source = $loader->getSourceContext($template);
+
                     $details[] = $this->validate($source);
                 }
             }
@@ -97,6 +107,7 @@ final class TwigCompileCommand extends AbstractCommand
      *
      * @return array
      */
+    // TODO : renommer la méthode en validateCompilation() ou validateSource() ou un truc du genre ????
     private function validate(Source $source): array
     {
         try {
@@ -163,21 +174,27 @@ final class TwigCompileCommand extends AbstractCommand
         $error = $detail['error'];
         $line = $error->getTemplateLine();
 
-        $this->line(sprintf('<error> ERROR </error> in %s (line %s)', $detail['file'], $line));
+        // It's a generic syntax error so there is no line associated.
+        if ($line === -1) {
+            $this->line(sprintf('<error> SYNTAX ERROR </error> in %s (%s)', $detail['file'], $error->getRawMessage()));
+        } else {
+            $this->line(sprintf('<error> ERROR </error> in %s (line %s)', $detail['file'], $line));
 
-        $lines = $this->getContext($detail['template'], $line);
+            $lines = $this->getContext($detail['template'], $line);
 
-        foreach ($lines as $lineNumber => $code) {
-            $this->line(sprintf(
-                '%s %-6s %s',
-                $lineNumber === $line ? '<error> >> </error>' : '    ',
-                $lineNumber,
-                $code
-            ));
+            foreach ($lines as $lineNumber => $code) {
+                $this->line(sprintf(
+                    '%s %-6s %s',
+                    $lineNumber === $line ? '<error> >> </error>' : '    ',
+                    $lineNumber,
+                    $code
+                ));
 
-            if ($lineNumber === $line) {
-                $this->line(sprintf('<error> >> %s</error> ', $error->getRawMessage()));
+                if ($lineNumber === $line) {
+                    $this->line(sprintf('<error> >> %s</error> ', $error->getRawMessage()));
+                }
             }
+
         }
     }
 

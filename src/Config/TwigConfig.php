@@ -9,8 +9,10 @@ use Nette\Schema\Schema;
 use Chiron\Config\AbstractInjectableConfig;
 use Chiron\Config\InjectableInterface;
 use Twig\Cache\CacheInterface;
+use Chiron\Config\Helper\Validator;
+use Closure;
 
-class TwigConfig extends AbstractInjectableConfig
+final class TwigConfig extends AbstractInjectableConfig
 {
     protected const CONFIG_SECTION_NAME = 'twig';
 
@@ -21,43 +23,44 @@ class TwigConfig extends AbstractInjectableConfig
             // general options settings
             'options' => Expect::structure([
                 'debug' => Expect::bool()->default(setting('debug')),
-                'charset' => Expect::string()->default(setting('charset')),
+                'charset' => Expect::string()->default(setting('charset')), // TODO : il faudrait pas refaire un test sur la validité du Charset ? comme c'est fait pour le settingsConfig ?
                 'strict_variables' => Expect::bool()->default(false),
-                'autoescape' => Expect::anyOf(Expect::bool(), Expect::string(), Expect::callable())->default('name'),
-                'cache' => Expect::anyOf(Expect::bool(), Expect::string(), Expect::interface(CacheInterface::class))->default(directory('@cache/twig/')),
+                'autoescape' => Expect::anyOf(false, Expect::string(), Expect::callable())->default('name'),
+                //'cache' => Expect::anyOf(false, Expect::string(), Expect::is(CacheInterface::class))->default(directory('@cache/twig/')),
+                'cache' => Expect::anyOf(false, Expect::string(), Expect::object())->assert(Closure::fromCallable([$this, 'objectIsCacheInterface']), 'instanceof CacheInterface')->default(directory('@cache/twig/')), // TODO : on devrait peut etre ne pas gérer la possibilité de passer un objet Cache*Interface ca simplifierai le code non ????
                 'auto_reload' => Expect::bool()->default(setting('debug')),
                 'optimizations' => Expect::anyOf(-1, 0)->default(-1),
-            ])->castTo('array'),
+            ]),
             // date settings
             'date' => Expect::structure([
                 'format' => Expect::string()->default('F j, Y H:i'),
                 'interval_format' => Expect::string()->default('%d days'),
-                'timezone' => Expect::string()->default(setting('timezone')),
-            ])->castTo('array'),
+                'timezone' => Expect::string()->nullable()->default(setting('timezone')), // TODO : il faudrait pas refaire un test sur la validité du TimeZone ? comme c'est fait pour le settingsConfig ? Si on ajoute ce controle il ne sera plus nécessaire de lever d'exception dans la méthode "setTimeZone()" de la factory car on sera sur que le format de la timezone est correct !!!!
+            ]),
             // number settings
             'number_format' => Expect::structure([
                 'decimals' => Expect::int()->default(0),
                 'decimal_point' => Expect::string()->default('.'),
                 'thousands_separator' => Expect::string()->default(','),
-            ])->castTo('array'),
+            ]),
             // generic parameters
-            'runtime_loaders' => Expect::array(), // TODO : virer la partie runtimeLoaders !!!!!
-            'globals' => Expect::array(),
+            'lexer' => Expect::array(),
+            'facades' => Expect::array()->assert(Closure::fromCallable([$this, 'isValidFacadeArray']), 'facades array structure'),
+            'globals' => Expect::arrayOf('string')->assert([Validator::class, 'isArrayAssociative'], 'associative array'),
+            'extensions' => Expect::array(),
             'functions' => Expect::array(),
             'filters' => Expect::array(),
-            'extensions' => Expect::array(),
-            'lexer' => Expect::array(),
         ]);
-    }
-
-    public function getRuntimeLoaders(): array
-    {
-        return $this->get('runtime_loaders');
     }
 
     public function getOptions(): array
     {
         return $this->get('options');
+    }
+
+    public function getFacades(): array
+    {
+        return $this->get('facades');
     }
 
     public function getGlobals(): array
@@ -94,4 +97,35 @@ class TwigConfig extends AbstractInjectableConfig
     {
         return $this->get('number_format');
     }
+
+    private function objectIsCacheInterface($value): bool
+    {
+        if (! is_object($value)) {
+            // if it's not an object we ignore this validation.
+            return true;
+        }
+
+        return Validator::is($value, CacheInterface::class);
+    }
+
+    // The facades array structure should be : a string index (used as the facade name), and the value should be an array with at least an existing 'class' key.
+    private function isValidFacadeArray(array $facades): bool
+    {
+        foreach ($facades as $key => $value) {
+            if (! is_string($key)) {
+                return false;
+            }
+
+            if (! is_array($value)) {
+                return false;
+            }
+
+            if (! isset($value['class'])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
 }

@@ -139,70 +139,6 @@ final class TwigDebugCommand extends AbstractCommand
 
 
 
-
-
-
-
-
-
-    private function getMetadata(string $type, $entity)
-    {
-        if ('globals' === $type) {
-            return $entity;
-        }
-        if ('tests' === $type) {
-            return null;
-        }
-        if ('functions' === $type || 'filters' === $type) {
-            $cb = $entity->getCallable();
-            if (null === $cb) {
-                return null;
-            }
-            if (\is_array($cb)) {
-                if (!method_exists($cb[0], $cb[1])) {
-                    return null;
-                }
-                $refl = new \ReflectionMethod($cb[0], $cb[1]);
-            } elseif (\is_object($cb) && method_exists($cb, '__invoke')) {
-                $refl = new \ReflectionMethod($cb, '__invoke');
-            } elseif (\function_exists($cb)) {
-                $refl = new \ReflectionFunction($cb);
-            } elseif (\is_string($cb) && preg_match('{^(.+)::(.+)$}', $cb, $m) && method_exists($m[1], $m[2])) {
-                $refl = new \ReflectionMethod($m[1], $m[2]);
-            } else {
-                throw new \UnexpectedValueException('Unsupported callback type.');
-            }
-
-            $args = $refl->getParameters();
-
-            // filter out context/environment args
-            if ($entity->needsEnvironment()) {
-                array_shift($args);
-            }
-            if ($entity->needsContext()) {
-                array_shift($args);
-            }
-
-            if ('filters' === $type) {
-                // remove the value the filter is applied on
-                array_shift($args);
-            }
-
-            // format args
-            $args = array_map(function (\ReflectionParameter $param) {
-                if ($param->isDefaultValueAvailable()) {
-                    return $param->getName().' = '.json_encode($param->getDefaultValue());
-                }
-
-                return $param->getName();
-            }, $args);
-
-            return $args;
-        }
-
-        return null;
-    }
-
     private function getPrettyMetadata(string $type, $entity, bool $decorated): ?string
     {
         if ('tests' === $type) {
@@ -238,4 +174,68 @@ final class TwigDebugCommand extends AbstractCommand
 
         return null;
     }
+
+    private function getMetadata(string $type, $entity)
+    {
+        if ('globals' === $type) {
+            return $entity;
+        }
+        if ('tests' === $type) {
+            return null;
+        }
+        if ('functions' === $type || 'filters' === $type) {
+            $cb = $entity->getCallable();
+            if (null === $cb) {
+                return null;
+            }
+            if (\is_array($cb)) {
+                if (!method_exists($cb[0], $cb[1])) {
+                    return null;
+                }
+                $refl = new \ReflectionMethod($cb[0], $cb[1]);
+            } elseif (\is_object($cb) && !$cb instanceof \Closure) {
+                $refl = new \ReflectionMethod($cb, '__invoke');
+            } elseif (\is_object($cb) && $cb instanceof \Closure) {
+                $refl = new \ReflectionFunction($cb);
+            } elseif (\function_exists($cb)) {
+                $refl = new \ReflectionFunction($cb);
+            } elseif (\is_string($cb) && preg_match('{^(.+)::(.+)$}', $cb, $m) && method_exists($m[1], $m[2])) {
+                $refl = new \ReflectionMethod($m[1], $m[2]);
+            } else {
+                throw new \UnexpectedValueException('Unsupported callback type.');
+            }
+
+            $args = $refl->getParameters();
+
+            //dd($args);
+
+            // filter out context/environment args
+            if ($entity->needsEnvironment()) {
+                array_shift($args);
+            }
+            if ($entity->needsContext()) {
+                array_shift($args);
+            }
+
+            if ('filters' === $type) {
+                // remove the value the filter is applied on
+                array_shift($args);
+            }
+
+            // format args
+            $args = array_map(function (\ReflectionParameter $param) {
+                if ($param->isDefaultValueAvailable()) {
+                    return $param->getName().' = '.json_encode($param->getDefaultValue());
+                }
+
+                return $param->getName();
+            }, $args);
+
+            return $args;
+        }
+
+        return null;
+    }
+
+
 }

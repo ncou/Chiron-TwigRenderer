@@ -12,7 +12,7 @@
          >
     <testsuites>
         <testsuite name="Chiron Twig Renderer Tests">
-            <directory>tests/</directory>
+            <directory>tests/Helper/</directory>
         </testsuite>
     </testsuites>
 

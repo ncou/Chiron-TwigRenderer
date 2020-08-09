@@ -8,10 +8,9 @@ use Psr\Container\ContainerInterface;
 use Chiron\Views\Config\TwigConfig;
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
-use Twig\Extension\DebugExtension;
 use Twig\Extension\CoreExtension;
 use Twig\Extension\ExtensionInterface;
-use Twig\RuntimeLoader\RuntimeLoaderInterface;
+use Chiron\Views\Helper\CallStaticClassProxy;
 use Twig\Lexer;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -24,7 +23,7 @@ use Twig\TwigFunction;
 //https://github.com/yiisoft/yii-twig/blob/master/src/ViewRenderer.php
 //https://github.com/silexphp/Silex-Providers/blob/master/TwigServiceProvider.php#L40
 
-final class TwigRendererFactory
+final class TwigEngineFactory
 {
     /**
      * @var Environment twig environment object that renders twig templates
@@ -40,9 +39,9 @@ final class TwigRendererFactory
 
     /**
      * @var array Global variables.
-     *            Keys of the array are names to call in template, values are scalar or objects or names of static classes.
-     *            Example: `['html' => ['class' => '\Chiron\helpers\Html'], 'debug' => CHIRON_DEBUG]`.
-     *            In the template you can use it like this: `{{ html.a('Login', 'site/login') | raw }}`.
+     *            Keys of the array are names to call in template, values are scalar or objects.
+     *            Example: `['my_key' => 'SECRET_KEY', 'my_object' => new myClass()]`.
+     *            In the template you can use it like this: `{{ my_object.hello('word') | raw }}`.
      */
     private $globals = [];
 
@@ -64,15 +63,9 @@ final class TwigRendererFactory
 
     /**
      * @var array Custom extensions.
-     *            Example: `['Twig_Extension_Sandbox', new \Twig_Extension_Text()]`
+     *            Example: `['\Twig\Extension\Sandbox', new \Twig\Extension\Text()]`
      */
     private $extensions = [];
-
-    /**
-     * @var array Custom runtime loaders.
-     *            Example: `['Twig_RuntimeLoader_Foo', new \Twig_RuntimeLoader_Bar()]`
-     */
-    private $runtimeLoaders = [];
 
     /**
      * @var array Twig lexer options.
@@ -92,7 +85,7 @@ final class TwigRendererFactory
 
     /**
      * @var array Settings to format the dates.
-     *            Example: `['timezone' => 'Europe/Paris', 'format' => 'F j, Y H:i', 'interfal_format' => '%d days']`
+     *            Example: `['timezone' => 'Europe/Paris', 'format' => 'F j, Y H:i', 'interval_format' => '%d days']`
      */
     private $date = [];
     /**
@@ -101,61 +94,38 @@ final class TwigRendererFactory
      */
     private $number = [];
 
-    //public function __invoke(ContainerInterface $container): TwigRenderer
-    // TODO : lui passer le viewConfig pour alimenter les paths ??? mais dans ce cas la classe ViewBootLoader ne servira plus à rien !!!!
-    public function __invoke(TwigConfig $config): TwigRenderer
+    public function __invoke(TwigConfig $config): Environment
     {
-        //$config = $container->get(TwigConfig::class);
-
-        $this->runtimeLoaders = $config->getRuntimeLoaders();
         $this->options = $config->getOptions();
+        $this->facades = $config->getFacades();
         $this->globals = $config->getGlobals();
         $this->functions = $config->getFunctions();
         $this->filters = $config->getFilters();
         $this->extensions = $config->getExtensions();
         $this->lexer = $config->getLexer();
-        $this->date = $config->getDate();
-        $this->number = $config->getNumberFormat();
 
-        $format = $this->date['format'];
-        $interval = $this->date['interval_format'];
-        $timezone = $this->date['timezone'];
+        // create the "Twig" engine.
+        $this->twig = $this->makeTwigEnvironment($config->getOptions());
+        // adjust the numbers format.
+        $this->initNumberFormat($config->getNumberFormat());
+        // adjust the dates format and the date timezone.
+        $this->initDateSettings($config->getDate());
 
-        $decimals = $this->number['decimals'];
-        $point = $this->number['decimal_point'];
-        $thousands = $this->number['thousands_separator'];
-
-        $debug = $this->options['debug'];
-
-        // initialize the twig engine.
-        // TODO : lui passer un tableau vide de paths + le rootPath =>     $loader = new FilesystemLoader([], directory('@root'));
-        // TODO : mettre ces deux ligne dans un méthode privée "createTwig()" ou alors juste la premiére ligne avec un createLoader() qui retourne un Filesystemloader
-        $loader = new FilesystemLoader();
-        $this->twig = new Environment($loader, $this->options);
-
-        // Add debug extension
-        if ($debug) {
-            $this->twig->addExtension(new DebugExtension());
+        // Change lexer syntax
+        if (! empty($this->lexer)) {
+            $this->setLexer($this->lexer);
         }
-        // Adjust the numbers format
-        $this->setNumberFormat($decimals, $point, $thousands);
-        // Adjust the dates format
-        $this->setDateFormat($format, $interval);
-        // Adjust the date timezone
-        if (isset($timezone)) {
-            $this->setTimezone($timezone);
-        }
-        // Adding runtime loaders
-        if (! empty($this->runtimeLoaders)) {
-            $this->addRuntimeLoaders($this->runtimeLoaders, $container);
-        }
-        // Adding custom extensions
-        if (! empty($this->extensions)) {
-            $this->addExtensions($this->extensions, $container);
+
+        if (! empty($this->facades)) {
+            $this->addFacades($this->facades);
         }
         // Adding custom globals (objects or static classes)
         if (! empty($this->globals)) {
             $this->addGlobals($this->globals);
+        }
+        // Adding custom extensions
+        if (! empty($this->extensions)) {
+            $this->addExtensions($this->extensions, $container);
         }
         // Adding custom functions
         if (! empty($this->functions)) {
@@ -165,46 +135,68 @@ final class TwigRendererFactory
         if (! empty($this->filters)) {
             $this->addFilters($this->filters);
         }
-        // Change lexer syntax (must be set after other settings)
-        if (! empty($this->lexer)) {
-            $this->setLexer($this->lexer);
-        }
 
-        return new TwigRenderer($this->twig);
+        return $this->twig;
     }
 
-    private function setNumberFormat(int $decimals, string $point, string $thousands): void
+    private function makeTwigEnvironment(array $options): Environment
     {
+        // TODO : lui passer un tableau vide de paths + le rootPath =>     $loader = new FilesystemLoader([], directory('@root'));
+
+        $loader = new FilesystemLoader();
+        //$paths = []; // the paths are added in the ViewsBootloader class.
+        //$rootPath = directory('@root'); // the rootpath value is used as prefix if the added paths are not absolute.
+        //$loader = new FilesystemLoader($paths, $rootPath);
+
+        return new Environment($loader, $options);
+    }
+
+    private function initNumberFormat(array $format): void
+    {
+        $decimals = $format['decimals'];
+        $point = $format['decimal_point'];
+        $thousands = $format['thousands_separator'];
+
         $this->twig->getExtension(CoreExtension::class)->setNumberFormat($decimals, $point, $thousands);
     }
 
-    private function setDateFormat(string $format, string $interval): void
+    private function initDateSettings(array $settings): void
     {
-        $this->twig->getExtension(CoreExtension::class)->setDateFormat($format, $interval);
-    }
+        $format = $settings['format'];
+        $interval = $settings['interval_format'];
 
-    private function setTimezone(string $timezone): void
-    {
-        try {
-            $timezone = new \DateTimeZone($timezone);
-        } catch (\Exception $e) {
-            throw new \InvalidArgumentException(sprintf('Unknown or invalid timezone: "%s"', $timezone));
-        }
+        $this->twig->getExtension(CoreExtension::class)->setDateFormat($format, $interval);
+
+        // the value timezone is nullable, and in this case the default timezone is used.
+        $timezone = $settings['timezone'] ?? date_default_timezone_get();
+
         $this->twig->getExtension(CoreExtension::class)->setTimezone($timezone);
     }
 
     /**
-     * Adds global objects or static classes.
-     *
-     * @param array $globals @see self::$globals
+     * Adds facades (it's some static classes).
      */
-    // TODO : virer les balises @see ????
+
+    // TODO : ne pas utiliser l'index du tableau comme nom de facade, mais plutot récupérer le nom de la facade à partir du FQN de la classe php et récupérant que le nom de la classe. utiliser le bout de code suivant : return basename(str_replace('\\', '/', $class));   et ca serai bien de préfixer ce nom par "Facade.", donc par exemple si on ajoute la classe "MyClasse/Helper/Html" l'alias pour la variable global dans Twig sera "Facade.Html" pour pouvoir l'utiliser dans les templates.
+
+    // TODO : ajouter une méthode pour vérifier si l'utilisateur n'a pas déjà ajouté cette "global" dans Twig (ca peut aussi arriver si une facade a le même nom qu'une variable globale à ajouter dans twig). Utiliser un code du style : if (in_array($name, array_keys($this->twig->getGlobals()))) then throw Exception.
+    private function addFacades(array $facades): void
+    {
+        foreach ($facades as $name => $settings) {
+            $class = $settings['class'];
+            $facade = new CallStaticClassProxy($class, $settings);
+
+            $this->twig->addGlobal($name, $facade);
+        }
+    }
+
+    /**
+     * Adds global objects or values.
+     */
+    // TODO : ajouter une méthode pour vérifier si l'utilisateur n'a pas déjà ajouté cette "global" dans Twig (ca peut aussi arriver si une facade a le même nom qu'une variable globale à ajouter dans twig). Utiliser un code du style : if (in_array($name, array_keys($this->twig->getGlobals()))) then throw Exception.
     private function addGlobals(array $globals): void
     {
         foreach ($globals as $name => $value) {
-            if (is_array($value) && isset($value['class'])) {
-                $value = new TwigRendererStaticClassProxy($value['class']);
-            }
             $this->twig->addGlobal($name, $value);
         }
     }
@@ -247,29 +239,14 @@ final class TwigRendererFactory
     }
 
     /**
-     * Adds runtime loaders.
-     *
-     * @param array              $runtimeLoaders @see self::$runtimeLoaders
-     * @param ContainerInterface $container
-     */
-    // TODO : virer les balises @see ????
-    private function addRuntimeLoaders(array $runtimeLoaders, ContainerInterface $container): void
-    {
-        foreach ($runtimeLoaders as $loaderName) {
-            $runtimeLoader = $this->loadRuntimeLoader($loaderName, $container);
-            $this->twig->addRuntimeLoader($runtimeLoader);
-        }
-    }
-
-    /**
      * Sets Twig lexer options to change templates syntax.
      *
-     * @param array $options @see self::$lexer
+     * @param array $tokens @see self::$lexer
      */
     // TODO : virer les balises @see ????
-    private function setLexer(array $options): void
+    private function setLexer(array $tokens): void
     {
-        $lexer = new Lexer($this->twig, $options);
+        $lexer = new Lexer($this->twig, $tokens);
         $this->twig->setLexer($lexer);
     }
 
@@ -323,6 +300,7 @@ final class TwigRendererFactory
      *
      * @throws \InvalidArgumentException if the extension provided or retrieved does not implement ExtensionInterface.
      */
+    // TODO : il faudrait plutot lui passer un FactoryInterface car on veut juste construire des classes !!!! Et le test sur le type de l'interface = ExtensionInterface ne sera plus nécessaire il faudra le faire au niveau de la classe de Config avec une vérif sur le Expect::isType() ou Expect::isInterface()
     private function loadExtension($extension, ContainerInterface $container): ExtensionInterface
     {
         // Load the extension from the container if present
@@ -339,29 +317,5 @@ final class TwigRendererFactory
         }
 
         return $extension;
-    }
-
-    /**
-     * @param string|RuntimeLoaderInterface $runtimeLoader
-     * @param ContainerInterface                  $container
-     *
-     * @throws \InvalidArgumentException if a given $runtimeLoader or the service it represents is not a RuntimeLoaderInterface instance.
-     */
-    private function loadRuntimeLoader($runtimeLoader, ContainerInterface $container): RuntimeLoaderInterface
-    {
-        // Load the runtime loader from the container
-        if (is_string($runtimeLoader) && $container->has($runtimeLoader)) {
-            $runtimeLoader = $container->get($runtimeLoader);
-        }
-
-        if (! $runtimeLoader instanceof RuntimeLoaderInterface) {
-            throw new \InvalidArgumentException(sprintf(
-                'Twig runtime loader must be an instance of %s; "%s" given.',
-                RuntimeLoaderInterface::class,
-                is_object($runtimeLoader) ? get_class($runtimeLoader) : gettype($runtimeLoader)
-            ));
-        }
-
-        return $runtimeLoader;
     }
 }
