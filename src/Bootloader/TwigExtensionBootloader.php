@@ -22,11 +22,11 @@ final class TwigExtensionBootloader extends AbstractBootloader
         $twig->addExtension($factory->build(ContainerExtension::class));
 
         if (setting('debug') === true) {
-            // Debug extension provide access to the "dump" function.
+            // Twig Debug extension provide access to the "dump()" function.
             $twig->addExtension($factory->build(DebugExtension::class));
         }
 
-        // if the http&router classes are presents we enable the routing extension.
+        // if the "http" and "router" classes are presents we enable the extension.
         if (di()->has(UrlGeneratorInterface::class) && di()->has(RequestContext::class)) {
             $twig->addExtension($factory->build(RoutingExtension::class));
         }

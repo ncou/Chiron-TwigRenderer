@@ -25,7 +25,7 @@ use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
 use Chiron\Views\TemplateRendererInterface;
-use Chiron\Views\TwigRendererFactory;
+use Chiron\Views\TwigEngineFactory;
 use Chiron\Views\Config\TwigConfig;
 
 class TwigCompileCommandTest extends TestCase
@@ -127,8 +127,9 @@ class TwigCompileCommandTest extends TestCase
     {
         $this->container = $this->initContainer();
 
-        $factory = new TwigRendererFactory();
-        $renderer = $factory(new TwigConfig(['lexer' => $lexer]));
+        $factory = new TwigEngineFactory();
+        $twig = $factory(new TwigConfig(['lexer' => $lexer]));
+        $renderer = new TwigRenderer($twig);
         $renderer->addPath($path, $namespace);
 
         $this->container->singleton(TemplateRendererInterface::class, $renderer);
