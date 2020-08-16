@@ -4,23 +4,14 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Command;
 
-use Chiron\Filesystem\Filesystem;
 use Chiron\Console\AbstractCommand;
-use Chiron\PublishableCollection;
-use Symfony\Component\Console\Input\InputOption;
-use Chiron\Views\Config\TwigConfig;
-use Chiron\Views\TwigRenderer;
-
-use InvalidArgumentException;
-use RuntimeException;
-use LogicException;
-
-use Twig\Environment;
-use Twig\Error\Error as TwigErrorException;
-use Twig\Loader\ArrayLoader;
-use Twig\Source;
-use Twig\Loader\FilesystemLoader;
+use Chiron\Filesystem\Filesystem;
 use Chiron\Views\TemplateRendererInterface;
+use Closure;
+use ReflectionFunction;
+use ReflectionMethod;
+use ReflectionParameter;
+use Twig\Loader\FilesystemLoader;
 
 //https://github.com/symfony/twig-bridge/blob/master/Command/DebugCommand.php#L557
 // ************* TESTS ***************
@@ -46,15 +37,14 @@ final class TwigDebugCommand extends AbstractCommand
         // TODO : à virer c'est un patch temporaire dans le code !!!!
         $decorated = false;
 
-
         $types = ['functions', 'filters', 'tests', 'globals'];
         foreach ($types as $index => $type) {
             $items = [];
-            foreach ($this->twig->{'get'.ucfirst($type)}() as $name => $entity) {
-                $items[$name] = $name.$this->getPrettyMetadata($type, $entity, $decorated);
+            foreach ($this->twig->{'get' . ucfirst($type)}() as $name => $entity) {
+                $items[$name] = $name . $this->getPrettyMetadata($type, $entity, $decorated);
             }
 
-            if (!$items) {
+            if (! $items) {
                 continue;
             }
 
@@ -63,17 +53,6 @@ final class TwigDebugCommand extends AbstractCommand
             ksort($items);
             $this->listing($items);
         }
-
-
-
-
-
-
-
-
-
-
-
 
         // TODO : gérer le cas ou le tableau de $paths est vide et dans ce cas afficher le message : 'No template paths configured for your application.'
         $paths = $this->getLoaderPaths();
@@ -97,15 +76,14 @@ final class TwigDebugCommand extends AbstractCommand
             //$paths = array_map([$this, 'getRelativePath'], $loader->getPaths($namespace));
             $paths = $loader->getPaths($namespace);
 
-            if (FilesystemLoader::MAIN_NAMESPACE === $namespace) {
+            if ($namespace === FilesystemLoader::MAIN_NAMESPACE) {
                 $namespace = '(None)';
             } else {
-                $namespace = '@'.$namespace;
+                $namespace = '@' . $namespace;
             }
 
             $loaderPaths[$namespace] = array_merge($loaderPaths[$namespace] ?? [], $paths);
         }
-
 
         return $loaderPaths;
     }
@@ -117,12 +95,12 @@ final class TwigDebugCommand extends AbstractCommand
         $prevHasSeparator = false;
 
         foreach ($loaderPaths as $namespace => $paths) {
-            if (!$firstNamespace && !$prevHasSeparator && count($paths) > 1) {
+            if (! $firstNamespace && ! $prevHasSeparator && count($paths) > 1) {
                 $rows[] = ['', ''];
             }
             $firstNamespace = false;
             foreach ($paths as $path) {
-                $rows[] = [$namespace, $path.DIRECTORY_SEPARATOR];
+                $rows[] = [$namespace, $path . DIRECTORY_SEPARATOR];
                 $namespace = '';
             }
             if (count($paths) > 1) {
@@ -139,28 +117,24 @@ final class TwigDebugCommand extends AbstractCommand
         return $rows;
     }
 
-
-
-
-
     private function getPrettyMetadata(string $type, $entity, bool $decorated): ?string
     {
-        if ('tests' === $type) {
+        if ($type === 'tests') {
             return '';
         }
 
         try {
             $meta = $this->getMetadata($type, $entity);
-            if (null === $meta) {
+            if ($meta === null) {
                 return '(unknown?)';
             }
         } catch (\UnexpectedValueException $e) {
             return sprintf(' <error>%s</error>', $decorated ? OutputFormatter::escape($e->getMessage()) : $e->getMessage());
         }
 
-        if ('globals' === $type) {
+        if ($type === 'globals') {
             if (is_object($meta)) {
-                return ' = object('.get_class($meta).')';
+                return ' = object(' . get_class($meta) . ')';
             }
 
             $description = substr(@json_encode($meta), 0, 50);
@@ -168,12 +142,12 @@ final class TwigDebugCommand extends AbstractCommand
             return sprintf(' = %s', $decorated ? OutputFormatter::escape($description) : $description);
         }
 
-        if ('functions' === $type) {
-            return '('.implode(', ', $meta).')';
+        if ($type === 'functions') {
+            return '(' . implode(', ', $meta) . ')';
         }
 
-        if ('filters' === $type) {
-            return $meta ? '('.implode(', ', $meta).')' : '';
+        if ($type === 'filters') {
+            return $meta ? '(' . implode(', ', $meta) . ')' : '';
         }
 
         return null;
@@ -181,30 +155,30 @@ final class TwigDebugCommand extends AbstractCommand
 
     private function getMetadata(string $type, $entity)
     {
-        if ('globals' === $type) {
+        if ($type === 'globals') {
             return $entity;
         }
-        if ('tests' === $type) {
+        if ($type === 'tests') {
             return null;
         }
-        if ('functions' === $type || 'filters' === $type) {
+        if ($type === 'functions' || $type === 'filters') {
             $cb = $entity->getCallable();
-            if (null === $cb) {
+            if ($cb === null) {
                 return null;
             }
             if (is_array($cb)) {
-                if (!method_exists($cb[0], $cb[1])) {
+                if (! method_exists($cb[0], $cb[1])) {
                     return null;
                 }
-                $refl = new \ReflectionMethod($cb[0], $cb[1]);
-            } elseif (is_object($cb) && !$cb instanceof \Closure) {
-                $refl = new \ReflectionMethod($cb, '__invoke');
-            } elseif (is_object($cb) && $cb instanceof \Closure) {
-                $refl = new \ReflectionFunction($cb);
+                $refl = new ReflectionMethod($cb[0], $cb[1]);
+            } elseif (is_object($cb) && ! $cb instanceof Closure) {
+                $refl = new ReflectionMethod($cb, '__invoke');
+            } elseif (is_object($cb) && $cb instanceof Closure) {
+                $refl = new ReflectionFunction($cb);
             } elseif (function_exists($cb)) {
-                $refl = new \ReflectionFunction($cb);
+                $refl = new ReflectionFunction($cb);
             } elseif (is_string($cb) && preg_match('{^(.+)::(.+)$}', $cb, $m) && method_exists($m[1], $m[2])) {
-                $refl = new \ReflectionMethod($m[1], $m[2]);
+                $refl = new ReflectionMethod($m[1], $m[2]);
             } else {
                 throw new \UnexpectedValueException('Unsupported callback type.');
             }
@@ -221,15 +195,15 @@ final class TwigDebugCommand extends AbstractCommand
                 array_shift($args);
             }
 
-            if ('filters' === $type) {
+            if ($type === 'filters') {
                 // remove the value the filter is applied on
                 array_shift($args);
             }
 
             // format args
-            $args = array_map(function (\ReflectionParameter $param) {
+            $args = array_map(function (ReflectionParameter $param) {
                 if ($param->isDefaultValueAvailable()) {
-                    return $param->getName().' = '.json_encode($param->getDefaultValue());
+                    return $param->getName() . ' = ' . json_encode($param->getDefaultValue());
                 }
 
                 return $param->getName();
@@ -240,6 +214,4 @@ final class TwigDebugCommand extends AbstractCommand
 
         return null;
     }
-
-
 }

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Config;
 
-use Nette\Schema\Expect;
-use Nette\Schema\Schema;
 use Chiron\Config\AbstractInjectableConfig;
-use Chiron\Config\InjectableInterface;
-use Twig\Cache\CacheInterface;
 use Chiron\Config\Helper\Validator;
 use Closure;
+use Nette\Schema\Expect;
+use Nette\Schema\Schema;
+use Twig\Cache\CacheInterface;
 
 final class TwigConfig extends AbstractInjectableConfig
 {
@@ -21,7 +20,7 @@ final class TwigConfig extends AbstractInjectableConfig
         // TODO : améliorer le typage des tableaux exemple : Expect::arrayOf(Expect::string(), Expect::type(CacheInterface::class))
         return Expect::structure([
             // general options settings
-            'options' => Expect::structure([
+            'options'       => Expect::structure([
                 'debug'            => Expect::bool()->default(setting('debug')),
                 'charset'          => Expect::string()->default(setting('charset')), // TODO : il faudrait pas refaire un test sur la validité du Charset ? comme c'est fait pour le settingsConfig ?
                 'strict_variables' => Expect::bool()->default(false),
@@ -32,7 +31,7 @@ final class TwigConfig extends AbstractInjectableConfig
                 'optimizations'    => Expect::anyOf(-1, 0)->default(-1),
             ]),
             // date settings
-            'date' => Expect::structure([
+            'date'          => Expect::structure([
                 'format'          => Expect::string()->default('F j, Y H:i'),
                 'interval_format' => Expect::string()->default('%d days'),
                 'timezone'        => Expect::string()->nullable()->default(setting('timezone')), // TODO : il faudrait pas refaire un test sur la validité du TimeZone ? comme c'est fait pour le settingsConfig ? Si on ajoute ce controle il ne sera plus nécessaire de lever d'exception dans la méthode "setTimeZone()" de la factory car on sera sur que le format de la timezone est correct !!!!
@@ -45,12 +44,12 @@ final class TwigConfig extends AbstractInjectableConfig
             ]),
             // generic parameters
             // TODO : améliorer la vérification des tableaux pour bien vérifier le type d'objet qui sont autorisés dans ces tableaux !!!
-            'extensions' => Expect::array(), // extension could be a string classename or an ExtensionInterface object.
-            'functions' => Expect::array(),
-            'filters' => Expect::array(),
-            'globals' => Expect::arrayOf('string')->assert([Validator::class, 'isArrayAssociative'], 'associative array'),
-            'facades' => Expect::array()->assert(Closure::fromCallable([$this, 'isValidFacadeArray']), 'facades array structure'),
-            'lexer' => Expect::array(),
+            'extensions'    => Expect::array(), // extension could be a string classename or an ExtensionInterface object.
+            'functions'     => Expect::array(),
+            'filters'       => Expect::array(),
+            'globals'       => Expect::arrayOf('string')->assert([Validator::class, 'isArrayAssociative'], 'associative array'),
+            'facades'       => Expect::array()->assert(Closure::fromCallable([$this, 'isValidFacadeArray']), 'facades array structure'),
+            'lexer'         => Expect::array(),
         ]);
     }
 
@@ -128,5 +127,4 @@ final class TwigConfig extends AbstractInjectableConfig
 
         return true;
     }
-
 }

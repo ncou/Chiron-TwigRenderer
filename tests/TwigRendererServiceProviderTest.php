@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Tests;
 
+use Chiron\Boot\Configure;
+use Chiron\Boot\Directories;
 use Chiron\Container\Container;
+use Chiron\Views\Config\TwigConfig;
 use Chiron\Views\Provider\TwigRendererServiceProvider;
 use Chiron\Views\TemplateRendererInterface;
+use Chiron\Views\TwigEngineFactory;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
 use Twig\Environment;
-
-use Chiron\Boot\Configure;
-use Chiron\Boot\Directories;
-
-use Chiron\Views\TwigEngineFactory;
-use Chiron\Views\Config\TwigConfig;
 
 class TwigRendererServiceProviderTest extends TestCase
 {
@@ -75,7 +73,6 @@ class TwigRendererServiceProviderTest extends TestCase
         // TODO : il faudra surement initialiser la matuation sur les classes de config plutot que de faire un merge !!!!
         $configure = $container->get(Configure::class);
         $configure->merge('settings', ['debug' => true, 'charset' => 'UTF-8', 'timezone' => 'UTC']);
-
 
         $directories = $container->get(Directories::class);
         $directories->set('@cache', sys_get_temp_dir());

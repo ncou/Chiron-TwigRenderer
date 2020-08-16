@@ -4,23 +4,14 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Command;
 
-use Chiron\Filesystem\Filesystem;
 use Chiron\Console\AbstractCommand;
-use Chiron\PublishableCollection;
-use Symfony\Component\Console\Input\InputOption;
-use Chiron\Views\Config\TwigConfig;
-use Chiron\Views\TwigRenderer;
-
-use InvalidArgumentException;
-use RuntimeException;
-use LogicException;
-
-use Twig\Environment;
-use Twig\Error\Error as TwigErrorException;
-use Twig\Loader\ArrayLoader;
-use Twig\Source;
-use Twig\Loader\FilesystemLoader;
+use Chiron\Filesystem\Filesystem;
 use Chiron\Views\TemplateRendererInterface;
+use Chiron\Views\TwigRenderer;
+use LogicException;
+use Twig\Error\Error as TwigErrorException;
+use Twig\Loader\FilesystemLoader;
+use Twig\Source;
 
 //https://github.com/symfony/twig-bridge/blob/17cbe5aa0a503c67d76dd6248ab8a3a856cf7105/Command/LintCommand.php
 //https://github.com/symfony/symfony/blob/9a4a96910d02275cc3a7912def65a6e39fec542d/src/Symfony/Bridge/Twig/Command/LintCommand.php
@@ -35,6 +26,7 @@ use Chiron\Views\TemplateRendererInterface;
  * Console command to check the syntax of Twig templates.
  *
  * Adapted from the Symfony TwigBundle:
+ *
  * @see https://github.com/symfony/TwigBundle/blob/master/Command/LintCommand.php
  *
  * @author Fabien Potencier <fabien@symfony.com>
@@ -54,13 +46,13 @@ final class TwigCompileCommand extends AbstractCommand
     public function perform(Filesystem $filesystem, TemplateRendererInterface $renderer): int
     {
         $loader = $this->getLoader($renderer);
-        $extension = '*.'. $renderer->getExtension();
+        $extension = '*.' . $renderer->getExtension();
 
         $details = [];
         foreach ($loader->getNamespaces() as $namespace) {
             foreach ($loader->getPaths($namespace) as $path) {
                 foreach ($filesystem->find($path, $extension) as $file) {
-                    $template = '@'.$namespace.'/'.$file->getBasename();
+                    $template = '@' . $namespace . '/' . $file->getBasename();
                     $source = $loader->getSourceContext($template);
 
                     $details[] = $this->validate($source);
@@ -82,8 +74,10 @@ final class TwigCompileCommand extends AbstractCommand
     {
         if (! $renderer instanceof TwigRenderer) {
             throw new LogicException(
-                sprintf('The renderer object must be a "%s" instance.',
-                    TwigRenderer::class)
+                sprintf(
+                    'The renderer object must be a "%s" instance.',
+                    TwigRenderer::class
+                )
             );
         }
 
@@ -92,8 +86,10 @@ final class TwigCompileCommand extends AbstractCommand
 
         if (! $loader instanceof FilesystemLoader) {
             throw new LogicException(
-                sprintf('The loader object defined in the TwigRenderer must be a "%s" instance.',
-                    FilesystemLoader::class)
+                sprintf(
+                    'The loader object defined in the TwigRenderer must be a "%s" instance.',
+                    FilesystemLoader::class
+                )
             );
         }
 
@@ -115,16 +111,16 @@ final class TwigCompileCommand extends AbstractCommand
         } catch (TwigErrorException $exception) {
             return [
                 'template' => $source->getCode(),
-                'file' => $source->getPath(),
-                'valid' => false,
-                'error' => $exception,
+                'file'     => $source->getPath(),
+                'valid'    => false,
+                'error'    => $exception,
             ];
         }
 
         return [
             'template' => $source->getCode(),
-            'file' => $source->getPath(),
-            'valid' => true,
+            'file'     => $source->getPath(),
+            'valid'    => true,
         ];
     }
 
@@ -194,7 +190,6 @@ final class TwigCompileCommand extends AbstractCommand
                     $this->line(sprintf('<error> >> %s</error> ', $error->getRawMessage()));
                 }
             }
-
         }
     }
 

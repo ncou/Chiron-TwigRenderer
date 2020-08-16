@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Command;
 
-use Chiron\Filesystem\Filesystem;
 use Chiron\Console\AbstractCommand;
-use Chiron\PublishableCollection;
-use Symfony\Component\Console\Input\InputOption;
+use Chiron\Filesystem\Filesystem;
 use Chiron\Views\TemplateRendererInterface;
-use Twig\Environment;
 
 //https://github.com/narrowspark/framework/blob/81f39d7371715ee20aa888a8934c36c536e3d69e/src/Viserio/Provider/Twig/Command/CleanCommand.php
 

@@ -4,33 +4,20 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Tests\Command;
 
-use Chiron\Views\TemplatePath;
-use Chiron\Views\TwigRenderer;
-use Chiron\Views\TwigEngineFactory;
-use PHPUnit\Framework\TestCase;
-
-use Symfony\Component\Console\Application;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Tester\CommandTester;
-
-use Chiron\Views\Command\TwigClearCommand;
-
-use Chiron\Console\CommandLoader\CommandLoader;
-use Chiron\Container\Container;
-use Chiron\Console\Console;
-
 use Chiron\Boot\Configure;
 use Chiron\Boot\Directories;
-
-use Twig\Environment;
-use Twig\Loader\FilesystemLoader;
-
-use Chiron\Filesystem\Filesystem;
-
-use Chiron\Views\TemplateRendererInterface;
+use Chiron\Console\CommandLoader\CommandLoader;
+use Chiron\Console\Console;
+use Chiron\Container\Container;
+use Chiron\Views\Command\TwigClearCommand;
 use Chiron\Views\Config\TwigConfig;
+use Chiron\Views\TemplateRendererInterface;
+use Chiron\Views\TwigEngineFactory;
+use Chiron\Views\TwigRenderer;
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Tester\CommandTester;
 use Twig\Cache\NullCache;
-use Chiron\Views\Provider\TwigRendererServiceProvider;
 
 class TwigClearCommandTest extends TestCase
 {
@@ -67,7 +54,6 @@ class TwigClearCommandTest extends TestCase
         $this->assertEquals(1, $ret, 'Returns 1 in case of error');
         $this->assertStringContainsString('Twig cache option is not defined as an absolute path, so it can\'t be cleaned.', trim($tester->getDisplay()));
     }
-
 
     public function testClearCacheFailCauseDirectoryCacheDoesntExist()
     {
@@ -110,7 +96,6 @@ class TwigClearCommandTest extends TestCase
         $configure = $container->get(Configure::class);
         $configure->merge('settings', ['debug' => true, 'charset' => 'UTF-8', 'timezone' => 'UTC']);
 
-
         $directories = $container->get(Directories::class);
         $directories->set('@cache', sys_get_temp_dir());
 
@@ -125,7 +110,7 @@ class TwigClearCommandTest extends TestCase
         do {
             $unique = $root . DIRECTORY_SEPARATOR . uniqid('composer-test-' . rand(1000, 9000));
 
-            if (!file_exists($unique) && mkdir($unique, 0777)) {
+            if (! file_exists($unique) && mkdir($unique, 0777)) {
                 return realpath($unique);
             }
         } while (--$attempts);

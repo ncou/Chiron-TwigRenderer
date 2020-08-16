@@ -1,19 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Chiron\Views\Bootloader;
 
-use Chiron\Boot\Directories;
 use Chiron\Bootload\AbstractBootloader;
-use Chiron\PublishableCollection;
-use Chiron\Console\Console;
-use Chiron\Views\TemplateRendererInterface;
-use Twig\Extension\DebugExtension;
 use Chiron\Container\FactoryInterface;
+use Chiron\Http\RequestContext;
+use Chiron\Router\UrlGeneratorInterface;
 use Chiron\Views\Extension\ContainerExtension;
 use Chiron\Views\Extension\RoutingExtension;
-use Chiron\Router\UrlGeneratorInterface;
-use Chiron\Http\RequestContext;
 use Twig\Environment;
+use Twig\Extension\DebugExtension;
 
 final class TwigExtensionBootloader extends AbstractBootloader
 {

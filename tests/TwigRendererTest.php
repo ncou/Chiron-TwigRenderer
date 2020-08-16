@@ -7,7 +7,6 @@ namespace Chiron\Views\Tests;
 use Chiron\Views\TemplatePath;
 use Chiron\Views\TwigRenderer;
 use PHPUnit\Framework\TestCase;
-
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 

@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Extension;
 
-use Chiron\Router\UrlGeneratorInterface;
 use Chiron\Http\RequestContext;
+use Chiron\Router\UrlGeneratorInterface;
+use Closure;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
-use Closure;
 
 //https://github.com/slimphp/Twig-View/blob/3.x/src/TwigExtension.php
 //https://github.com/drupal/drupal/blob/9.0.x/core/lib/Drupal/Core/Template/TwigExtension.php#L92

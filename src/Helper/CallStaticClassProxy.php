@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Chiron\Views\Helper;
 
-use Twig\Markup;
 use BadMethodCallException;
+use Twig\Markup;
 
 /**
  * Class-proxy for static classes "call" method bbecause you can't pass static class to Twig other way.
@@ -19,8 +19,8 @@ final class CallStaticClassProxy
     private $settings;
 
     /**
-     * @param string $class     The static class name to call
-     * @param array  $settings  Customisation settings for the called classname / method.
+     * @param string $class    The static class name to call
+     * @param array  $settings Customisation settings for the called classname / method.
      */
     public function __construct(string $class, array $settings = [])
     {

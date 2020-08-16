@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace Chiron\Views;
 
-use Psr\Container\ContainerInterface;
+use Chiron\Container\FactoryInterface;
 use Chiron\Views\Config\TwigConfig;
-use Twig\Loader\FilesystemLoader;
+use Chiron\Views\Helper\CallStaticClassProxy;
+use InvalidArgumentException;
 use Twig\Environment;
 use Twig\Extension\CoreExtension;
 use Twig\Extension\ExtensionInterface;
-use Chiron\Views\Helper\CallStaticClassProxy;
 use Twig\Lexer;
+use Twig\Loader\FilesystemLoader;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
-use Chiron\Container\FactoryInterface;
-use InvalidArgumentException;
 
 // DOCUMENTATION
 //https://symfony.com/doc/current/reference/configuration/twig.html
@@ -155,6 +154,7 @@ final class TwigEngineFactory
                     $twigElement = new $classFunction($name, $func);
 
                     break;
+
                 // Callable (including just a name of function) + options array.
                 case is_array($func) && is_callable($func[0]):
                     $twigElement = new $classFunction($name, $func[0], isset($func[1]) && is_array($func[1]) ? $func[1] : []);
