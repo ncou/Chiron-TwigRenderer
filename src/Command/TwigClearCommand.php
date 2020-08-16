@@ -41,7 +41,7 @@ final class TwigClearCommand extends AbstractCommand
 
         // TODO : ajouter un try catch des \Throwable et afficher une erreur si c'est le cas ????
         // TODO : attention on va devoir gérer le cas ou le répertoire n'existe pas, pour l'instant la méthode deleteDirectory retourne "false" dans ce cas là, mais si léve une exception prochainement il faudra gérer ce cas !!!!
-        $deleted = $filesystem->deleteDirectory($cacheDir, false);
+        $deleted = $filesystem->deleteDirectory($cacheDir, true);
 
         if ($deleted === false) {
             $this->error('Twig cache failed to be cleaned.');

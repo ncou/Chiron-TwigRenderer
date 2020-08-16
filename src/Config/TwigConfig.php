@@ -22,34 +22,35 @@ final class TwigConfig extends AbstractInjectableConfig
         return Expect::structure([
             // general options settings
             'options' => Expect::structure([
-                'debug' => Expect::bool()->default(setting('debug')),
-                'charset' => Expect::string()->default(setting('charset')), // TODO : il faudrait pas refaire un test sur la validité du Charset ? comme c'est fait pour le settingsConfig ?
+                'debug'            => Expect::bool()->default(setting('debug')),
+                'charset'          => Expect::string()->default(setting('charset')), // TODO : il faudrait pas refaire un test sur la validité du Charset ? comme c'est fait pour le settingsConfig ?
                 'strict_variables' => Expect::bool()->default(false),
-                'autoescape' => Expect::anyOf(false, Expect::string(), Expect::callable())->default('name'),
+                'autoescape'       => Expect::anyOf(false, Expect::string(), Expect::callable())->default('name'),
                 //'cache' => Expect::anyOf(false, Expect::string(), Expect::is(CacheInterface::class))->default(directory('@cache/twig/')),
-                'cache' => Expect::anyOf(false, Expect::string(), Expect::object())->assert(Closure::fromCallable([$this, 'objectIsCacheInterface']), 'instanceof CacheInterface')->default(directory('@cache/twig/')), // TODO : on devrait peut etre ne pas gérer la possibilité de passer un objet Cache*Interface ca simplifierai le code non ????
-                'auto_reload' => Expect::bool()->default(setting('debug')),
-                'optimizations' => Expect::anyOf(-1, 0)->default(-1),
+                'cache'            => Expect::anyOf(false, Expect::string(), Expect::object())->assert(Closure::fromCallable([$this, 'objectIsCacheInterface']), 'instanceof CacheInterface')->default(directory('@cache/twig/')), // TODO : on devrait peut etre ne pas gérer la possibilité de passer un objet Cache*Interface ca simplifierai le code non ????
+                'auto_reload'      => Expect::bool()->default(setting('debug')),
+                'optimizations'    => Expect::anyOf(-1, 0)->default(-1),
             ]),
             // date settings
             'date' => Expect::structure([
-                'format' => Expect::string()->default('F j, Y H:i'),
+                'format'          => Expect::string()->default('F j, Y H:i'),
                 'interval_format' => Expect::string()->default('%d days'),
-                'timezone' => Expect::string()->nullable()->default(setting('timezone')), // TODO : il faudrait pas refaire un test sur la validité du TimeZone ? comme c'est fait pour le settingsConfig ? Si on ajoute ce controle il ne sera plus nécessaire de lever d'exception dans la méthode "setTimeZone()" de la factory car on sera sur que le format de la timezone est correct !!!!
+                'timezone'        => Expect::string()->nullable()->default(setting('timezone')), // TODO : il faudrait pas refaire un test sur la validité du TimeZone ? comme c'est fait pour le settingsConfig ? Si on ajoute ce controle il ne sera plus nécessaire de lever d'exception dans la méthode "setTimeZone()" de la factory car on sera sur que le format de la timezone est correct !!!!
             ]),
             // number settings
             'number_format' => Expect::structure([
-                'decimals' => Expect::int()->default(0),
-                'decimal_point' => Expect::string()->default('.'),
+                'decimals'            => Expect::int()->default(0),
+                'decimal_point'       => Expect::string()->default('.'),
                 'thousands_separator' => Expect::string()->default(','),
             ]),
             // generic parameters
-            'lexer' => Expect::array(),
-            'facades' => Expect::array()->assert(Closure::fromCallable([$this, 'isValidFacadeArray']), 'facades array structure'),
-            'globals' => Expect::arrayOf('string')->assert([Validator::class, 'isArrayAssociative'], 'associative array'),
-            'extensions' => Expect::array(),
+            // TODO : améliorer la vérification des tableaux pour bien vérifier le type d'objet qui sont autorisés dans ces tableaux !!!
+            'extensions' => Expect::array(), // extension could be a string classename or an ExtensionInterface object.
             'functions' => Expect::array(),
             'filters' => Expect::array(),
+            'globals' => Expect::arrayOf('string')->assert([Validator::class, 'isArrayAssociative'], 'associative array'),
+            'facades' => Expect::array()->assert(Closure::fromCallable([$this, 'isValidFacadeArray']), 'facades array structure'),
+            'lexer' => Expect::array(),
         ]);
     }
 

@@ -1,6 +1,9 @@
 <?php
 
 return [
+    /**
+     * @see https://twig.symfony.com/doc/3.x/api.html#environment-options
+     */
     'options' => [
         'debug' => setting('debug'),
         'charset' => setting('charset'),
@@ -10,20 +13,66 @@ return [
         'auto_reload' => setting('debug'),
         'optimizations' => -1,
     ],
+    /**
+     * Example: `['format' => 'F j, Y H:i', 'interval_format' => '%d days', 'timezone' => 'Europe/Paris']`
+     * @see https://www.php.net/manual/en/datetime.format.php
+     */
     'date' => [
         'format' => 'F j, Y H:i',
         'interval_format' => '%d days',
         'timezone' => setting('timezone'),
     ],
+    /**
+     * Example: `['decimals' => 2, 'decimal_point' => ',', 'thousands_separator' => ' ']`
+     */
     'number_format' => [
         'decimals' => 0,
         'decimal_point' => '.',
         'thousands_separator' => ',',
     ],
-    'lexer' => [],
-    'facades' => [],
-    'globals' => [],
+    /**
+     * Example: `['\Twig\Extension\Sandbox', new \Twig\Extension\Text()]`
+     */
     'extensions' => [],
+    /**
+     * Keys of the array are names to call in template, values are callable and a possible array of options.
+     *
+     * Example: `['rot13' => 'str_rot13', 'a' => '\Chiron\helpers\Html::a', 'advanced' => ['str_rot13', ['is_safe' => null, 'needs_environment' => true]]]`.
+     * In the template you can use it like this: `{{ rot13('test') }}` or `{{ a('Login', 'site/login') | raw }}`.
+     */
     'functions' => [],
+    /**
+     * Keys of the array are names to call in template, values are callable and a possible array for options.
+     *
+     * Example: `['rot13' => 'str_rot13', 'jsonEncode' => '\Chiron\helpers\Json::encode', 'advanced' => ['str_rot13', ['is_safe' => null, 'needs_environment' => true]]]`.
+     * In the template you can use it like this: `{{ 'test'|rot13 }}` or `{{ model|jsonEncode }}`.
+     */
     'filters' => [],
+    /**
+     * Keys of the array are names to call in template, values are scalar or objects.
+     *
+     * Example: `['my_key' => 'SECRET_KEY', 'my_object' => new myClass()]`.
+     * In the template you can use it like this: `{{ my_object.hello('word') | raw }}`.
+     */
+    'globals' => [],
+    /**
+     * Keys of the array are names to call in template, values are array with the name of the static class and possible options 'is_safe' and 'charset'.
+     * Option 'is_safe' could be a boolean at true for all the method in the facade or an array of safe methods names
+     *
+     * Example: `['Facade.Html' => ['class' => '\Chiron\Facade\Html']]`.
+     * Example Advanced: `['REQ' => ['class' => '\Chiron\Facade\Request', 'is_safe' => true], 'AdvancedHtml' => ['class' => '\Chiron\Facade\Html', 'is_safe' =>['method1'], 'charset' => 'UTF-8']]`.
+     * In the template you can use it like this: `{{ Facade.Html.method2('foobar') }}` or `{{ REQ.getRequest() }}`.
+     */
+    'facades' => [],
+    /**
+     * Example: Smarty-like syntax:
+     * [
+     *     'tag_comment'  => ['{*', '*}'],
+     *     'tag_block'    => ['{', '}'],
+     *     'tag_variable' => ['{$', '}']
+     * ]
+     *
+     * @see https://twig.symfony.com/doc/3.x/recipes.html#customizing-the-syntax
+     */
+    'lexer' => [],
 ];

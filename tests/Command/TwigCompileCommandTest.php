@@ -153,7 +153,6 @@ class TwigCompileCommandTest extends TestCase
         $configure = $container->get(Configure::class);
         $configure->merge('settings', ['debug' => true, 'charset' => 'UTF-8', 'timezone' => 'UTC']);
 
-
         $directories = $container->get(Directories::class);
         $directories->set('@cache', sys_get_temp_dir());
 

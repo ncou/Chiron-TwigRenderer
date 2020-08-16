@@ -23,6 +23,10 @@ use Twig\Loader\FilesystemLoader;
 use Chiron\Views\TemplateRendererInterface;
 
 //https://github.com/symfony/twig-bridge/blob/master/Command/DebugCommand.php#L557
+// ************* TESTS ***************
+//https://github.com/symfony/twig-bridge/blob/master/Tests/Command/DebugCommandTest.php
+
+
 final class TwigDebugCommand extends AbstractCommand
 {
     /** @var \Twig\Environment */
@@ -113,15 +117,15 @@ final class TwigDebugCommand extends AbstractCommand
         $prevHasSeparator = false;
 
         foreach ($loaderPaths as $namespace => $paths) {
-            if (!$firstNamespace && !$prevHasSeparator && \count($paths) > 1) {
+            if (!$firstNamespace && !$prevHasSeparator && count($paths) > 1) {
                 $rows[] = ['', ''];
             }
             $firstNamespace = false;
             foreach ($paths as $path) {
-                $rows[] = [$namespace, $path.\DIRECTORY_SEPARATOR];
+                $rows[] = [$namespace, $path.DIRECTORY_SEPARATOR];
                 $namespace = '';
             }
-            if (\count($paths) > 1) {
+            if (count($paths) > 1) {
                 $rows[] = ['', ''];
                 $prevHasSeparator = true;
             } else {
@@ -155,8 +159,8 @@ final class TwigDebugCommand extends AbstractCommand
         }
 
         if ('globals' === $type) {
-            if (\is_object($meta)) {
-                return ' = object('.\get_class($meta).')';
+            if (is_object($meta)) {
+                return ' = object('.get_class($meta).')';
             }
 
             $description = substr(@json_encode($meta), 0, 50);
@@ -188,18 +192,18 @@ final class TwigDebugCommand extends AbstractCommand
             if (null === $cb) {
                 return null;
             }
-            if (\is_array($cb)) {
+            if (is_array($cb)) {
                 if (!method_exists($cb[0], $cb[1])) {
                     return null;
                 }
                 $refl = new \ReflectionMethod($cb[0], $cb[1]);
-            } elseif (\is_object($cb) && !$cb instanceof \Closure) {
+            } elseif (is_object($cb) && !$cb instanceof \Closure) {
                 $refl = new \ReflectionMethod($cb, '__invoke');
-            } elseif (\is_object($cb) && $cb instanceof \Closure) {
+            } elseif (is_object($cb) && $cb instanceof \Closure) {
                 $refl = new \ReflectionFunction($cb);
-            } elseif (\function_exists($cb)) {
+            } elseif (function_exists($cb)) {
                 $refl = new \ReflectionFunction($cb);
-            } elseif (\is_string($cb) && preg_match('{^(.+)::(.+)$}', $cb, $m) && method_exists($m[1], $m[2])) {
+            } elseif (is_string($cb) && preg_match('{^(.+)::(.+)$}', $cb, $m) && method_exists($m[1], $m[2])) {
                 $refl = new \ReflectionMethod($m[1], $m[2]);
             } else {
                 throw new \UnexpectedValueException('Unsupported callback type.');

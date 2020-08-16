@@ -9,9 +9,9 @@ namespace Chiron\Views;
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
+// TODO : créer une classe abstraite pour les renderer plutot que d'utiliser des trait ????
 final class TwigRenderer implements TemplateRendererInterface
 {
-    // TODO : créer une classe abstraite pour les renderer plutot que d'utiliser des trait ????
     use AttributesTrait;
     use ExtensionTrait;
 
@@ -74,7 +74,7 @@ final class TwigRenderer implements TemplateRendererInterface
         // TODO : attention ca va merder si l'utilisateur n'a pas défini le loader comme étant un objet de type FilesystemLoader, par exemple si il a redéfini le loader via la méthode ->twig() pour le transformer en pbjet ArrayLoader par exemple !!!!
         foreach ($this->twigLoader->getNamespaces() as $namespace) {
             // TODO : utiliser une constante pour "null" dans le cas ou on n'a pas utilisé de namespace !!!!!
-            $name = ($namespace !== $this->twigViewsNamespace) ? $namespace : null;
+            $name = $namespace !== $this->twigViewsNamespace ? $namespace : null;
             foreach ($this->twigLoader->getPaths($namespace) as $path) {
                 $paths[] = new TemplatePath($path, $name);
             }

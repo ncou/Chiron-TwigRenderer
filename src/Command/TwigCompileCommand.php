@@ -165,7 +165,7 @@ final class TwigCompileCommand extends AbstractCommand
     /**
      * Output the error to the console.
      *
-     * @param array $detail Infrmations for the file that failed to be compiled
+     * @param array $detail Informations for the file that failed to be compiled
      *
      * @return void
      */
